@@ -396,3 +396,18 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# JetBrains file for those working
+.idea/
+
+# Mac files for those working on Mac
+.DS_Store
+
+# Node.js dependency directory
+node_modules/
+
+# Lockfile
+package-lock.json
+npm-debug.log
+
+
