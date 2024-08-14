@@ -55,6 +55,7 @@ Threads is a mobile application that allows users to create and participate in t
    ```
 
 3. Start the server:
+
    ```sh
    npm start
    ```
