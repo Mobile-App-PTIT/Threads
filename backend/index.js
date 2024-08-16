@@ -16,13 +16,13 @@ app.use(cors());
 app.use(compression());
 app.use(morgan('dev'))
 
-app.use((err, req, res, next) => {
-    console.error(err.stack)
-    res.status(err.status || 500).json({
-        message: err.message || 'Internal Server Error',
-        error: err
-    })
-})
+app.use((error, req, res, next) => {
+    console.log(error);
+    const status = error.statusCode || 500;
+    const mess = error.message;
+    const data = error.data;
+    res.status(status).json({message: mess, data: data});
+});
 
 app.listen(process.env.PORT || 3000, () => {
     console.log(`Server is running on port ${process.env.PORT || 3000}`)
