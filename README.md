@@ -73,7 +73,7 @@ Before you begin, ensure you have met the following requirements:
    - You can connect to the MongoDB database using the following connection string: `mongodb://<username>:<password>@localhost:27018/`.
    - You should not use the **`root`** user for the application. Instead, use the **`dev`** user.
    - The information about the database is stored in the file `database/.env`.
-   - For more information about the commands in `config.ps1`, see the [README.md](database/README.md) file in the `database` directory.
+   - For more information about the commands in `config.ps1`, follow [this instruction](database/README.md).
 
 #### Frontend (React Native)
 
