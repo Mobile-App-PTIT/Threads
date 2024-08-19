@@ -7,7 +7,7 @@ const passport = require("passport");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const compression = require("compression");
-const initWebRoutes = require("./routes/init");
+const initWebRoutes = require("./routes/init.route");
 const User = require("./models/user.model");
 
 const app = express();
