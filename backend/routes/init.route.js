@@ -6,7 +6,7 @@ let router = express.Router();
 let initWebRoutes = (app) => {
   router.use("/user", userRoutes);
 
-  return app.use("/", router);
+  return app.use("/api", router);
 };
 
 module.exports = initWebRoutes;

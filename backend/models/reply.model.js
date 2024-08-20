@@ -8,7 +8,7 @@ const replySchema = new Schema({
     },
     image: {
         type: String,
-        required: true,
+        default: '',
     },
     likes: {
         type: [Types.ObjectId],

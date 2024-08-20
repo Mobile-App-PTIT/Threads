@@ -7,7 +7,7 @@ router.get("/", userController.getUserInfo);
 router.patch("/", userController.updateUserInfo);
 router.delete("/", userController.deleteUser);
 
-router.get("/followers", userController.getUserFollowers);
-router.get("/following", userController.getUserFollowing);
+router.get("/followers/:userId", userController.getUserFollowers);
+router.get("/following/:userId", userController.getUserFollowing);
 
 module.exports = router;

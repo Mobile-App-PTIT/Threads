@@ -11,7 +11,7 @@ exports.updateUserInfo = async (req, res, next) => {
 
         const user = await User.findByIdAndUpdate({
             _id: req.user._id
- ,      }, {
+        }, {
             name, 
             bio,
             email,
