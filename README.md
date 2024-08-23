@@ -119,6 +119,19 @@ Before you begin, ensure you have met the following requirements:
    Once the development server is running, the easiest way to launch the app is on a physical device with Expo Go.
    To see the web app in action, press **`w`** in the terminal. It will open the web app in the default web browser.
 
+5. Run without expo:
+
+   ```sh
+   npx react-native run-android
+   ```
+
+   or
+
+   ```sh
+   npm start
+   // after that, choose the option to run on Android or iOS
+   ```
+
 #### Backend (Node.js)
 
 1. Navigate to the `backend` directory:
@@ -158,5 +171,3 @@ If you want to contact me, you can reach me at [your-email@example.com](mailto:y
 ## License
 
 This project uses the following license: [MIT License](LICENSE).
-
-
