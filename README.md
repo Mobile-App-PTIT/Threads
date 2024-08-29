@@ -152,6 +152,8 @@ Before you begin, ensure you have met the following requirements:
    npm start
    ```
 
+   **Note:** List of available APIs can be found here: [API Documentation](backend/README.md).
+
 ## Contributing
 
 To contribute to Threads, follow these steps:
