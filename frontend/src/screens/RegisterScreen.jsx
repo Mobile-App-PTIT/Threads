@@ -13,7 +13,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useState} from 'react';
-const RegisterScreen = () => {
+const RegisterScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -23,7 +23,7 @@ const RegisterScreen = () => {
   };
 
   return (
-    <SafeAreaView className='flex-1 bg-white items-center'>
+    <SafeAreaView className="flex-1 bg-white items-center">
       <View className="mt-[120px]">
         <Image
           className="w-[150px] h-[170px] object-contain"
@@ -93,7 +93,6 @@ const RegisterScreen = () => {
               />
             </View>
           </View>
-          
         </View>
 
         <TouchableOpacity
@@ -107,7 +106,7 @@ const RegisterScreen = () => {
           className="mt-5"
           onPress={() => navigation.navigate('Login')}>
           <Text className="text-black text-center text-lg">
-                Already have an account? Login
+            Already have an account? Login
           </Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
