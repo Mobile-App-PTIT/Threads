@@ -8,18 +8,37 @@ import {
   Pressable,
   TouchableOpacity,
   ToastAndroid,
+  Alert,
 } from 'react-native';
+import {useEffect} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {registerUser} from '../../redux/actions/userAction';
+
 const RegisterScreen = ({navigation}) => {
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const {error, isAuthenticated} = useSelector(state => state.user);
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert(error)
+      console.log(error)
+    }
+    if (isAuthenticated) {
+      Alert.alert('Account created successfully');  
+      navigation.navigate('Home')
+    }
+  }, [error, isAuthenticated]);
 
   const handleRegister = () => {
     console.log(email, password, name);
+    registerUser(email, password, name)(dispatch);
   };
 
   return (

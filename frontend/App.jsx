@@ -1,10 +1,11 @@
 import './global.css';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import Auth from './src/navigation/Auth';
 import Main from './src/navigation/Main';
 import Store from './redux/store';
-import {Provider} from 'react-redux';
+import {Provider, useSelector} from 'react-redux';
 import {NavigationContainer} from '@react-navigation/native';
+import { loadUser } from './redux/actions/userAction';
 
 function App() {
   return (
@@ -16,6 +17,12 @@ function App() {
 
 const AppStack = () => {
   const [isLogin, setIsLogin] = useState(false);
+  const {isAuthenticated, loading} = useSelector(state => state.user);
+
+  useEffect(() => {
+    Store.dispatch(loadUser());
+  }, [])
+
   return (
     <>
       {isLogin ? (

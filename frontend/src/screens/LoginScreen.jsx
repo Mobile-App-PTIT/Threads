@@ -8,19 +8,34 @@ import {
   Pressable,
   TouchableOpacity,
   ToastAndroid,
+  Alert,
 } from 'react-native';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import { loginUser } from '../../redux/actions/userAction';
 
 const LoginScreen = ({navigation}) => {
-
+    const dispatch = useDispatch();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const {error, isAuthenticated} = useSelector(state => state.user);
 
     const handleLogin = () => {
         console.log(email, password)
+        loginUser(email, password)(dispatch)
     }
+
+    useEffect(() => {
+      if (error) {
+        Alert.alert(error)
+      }
+      if (isAuthenticated) {
+        navigation.navigate('Home')
+        Alert.alert('Login successful')
+      }
+    }, [])
 
   return (
     <SafeAreaView className="flex-1 bg-white items-center">
