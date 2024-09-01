@@ -16,8 +16,8 @@ function App() {
 }
 
 const AppStack = () => {
-  const [isLogin, setIsLogin] = useState(false);
-  const {isAuthenticated, loading} = useSelector(state => state.user);
+  const [isLogin, setIsLogin] = useState(true);
+  const {isAuthenticated, isLoading} = useSelector(state => state.user);
 
   useEffect(() => {
     Store.dispatch(loadUser());
@@ -25,15 +25,22 @@ const AppStack = () => {
 
   return (
     <>
-      {isLogin ? (
-        <NavigationContainer>
-          <Main />
-        </NavigationContainer>
+      {isLoading ? (
+        <Text className='text-black'>Loading</Text>
       ) : (
-        <NavigationContainer>
-          <Auth />
-        </NavigationContainer>
+        <>
+          {isLogin ? ( // sau thay = isAuthenticated
+            <NavigationContainer>
+              <Main />
+            </NavigationContainer>
+          ) : (
+            <NavigationContainer>
+              <Auth />
+            </NavigationContainer>
+          )}
+        </>
       )}
+      
     </>
   );
 };

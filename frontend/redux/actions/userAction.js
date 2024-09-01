@@ -35,7 +35,6 @@ export const registerUser = (name, email, password) => async dispatch => {
 };
 
 // load user
-
 export const loadUser = () => async dispatch => {
   try {
     dispatch({
@@ -78,6 +77,9 @@ export const loginUser = (email, password) => async dispatch => {
       type: 'userLoginSuccess',
       payload: data.user,
     });
+    // if (data.token) {
+    //   await AsyncStorage.setItem('token', data.token);
+    // }
   } catch (error) {
     dispatch({
       type: 'userLoginFailed',
