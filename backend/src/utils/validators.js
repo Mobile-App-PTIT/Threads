@@ -8,8 +8,18 @@ const isNonEmptyString = (value) => {
 
 // Check if a value is a valid email
 const isEmail = (value) => {
+  // Updated regex to disallow consecutive dots and dots at the start or end
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(value);
+  const consecutiveDotsRegex = /\.{2,}/;
+  const startsOrEndsWithDotRegex = /^\.|\.$/;
+  const dotBeforeAtRegex = /\.@/;
+
+  return (
+    emailRegex.test(value) &&
+    !consecutiveDotsRegex.test(value) &&
+    !startsOrEndsWithDotRegex.test(value) &&
+    !dotBeforeAtRegex.test(value)
+  );
 };
 
 // Check if an email is already in use
