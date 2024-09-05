@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const RefreshToken = require("../models/token.model");
 const User = require("../models/user.model");
 
-exports.isAuth = async (req, res, next) => {
+const isAuth = async (req, res, next) => {
   try {
     let authHeader = req.get("Authorization");
     // console.log(req.user);
@@ -56,3 +56,5 @@ exports.isAuth = async (req, res, next) => {
     next(err);
   }
 };
+
+module.exports = { isAuth };

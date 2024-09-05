@@ -2,15 +2,14 @@ const {
   isNonEmptyString,
   isEmail,
   isEmailInUse,
-  isNumber,
   isLength,
 } = require("../utils/validators");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
 const RefreshToken = require("../models/token.model");
 
-exports.signup = async (req, res, next) => {
+const signup = async (req, res, next) => {
   try {
     const { email, password, name } = req.body;
 
@@ -56,7 +55,7 @@ exports.signup = async (req, res, next) => {
   }
 };
 
-exports.login = async (req, res, next) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -118,7 +117,7 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.refresh = async (req, res, next) => {
+const refresh = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
 
@@ -157,3 +156,5 @@ exports.refresh = async (req, res, next) => {
     next(err);
   }
 };
+
+module.exports = { signup, login, refresh };
