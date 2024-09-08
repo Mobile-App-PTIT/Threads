@@ -1,6 +1,10 @@
 import {View, Text, Image} from 'react-native';
 import React from 'react';
 import HomeScreen from '../screens/HomeScreen';
+import SearchScreen from '../screens/SearchScreen';
+import PostScreen from '../screens/PostScreen';
+import NotificationScreen from '../screens/NotificationScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 const Tab = createBottomTabNavigator();
@@ -31,7 +35,7 @@ const Tabs = (props) => {
       />
        <Tab.Screen
         name="Search"
-        component={HomeScreen}
+        component={SearchScreen}
         options={({route}) => ({
           tabBarIcon: ({focused}) => (
             <Image
@@ -45,8 +49,9 @@ const Tabs = (props) => {
       />
        <Tab.Screen
         name="Post"
-        component={HomeScreen}
+        component={PostScreen}
         options={({route}) => ({
+          tabBarStyle: {display: route.name === 'Post' ? 'none' : 'flex'},
           tabBarIcon: ({focused}) => (
             <Image
               source={{
@@ -58,8 +63,8 @@ const Tabs = (props) => {
         })}
       />
        <Tab.Screen
-        name="Favourite"
-        component={HomeScreen}
+        name="Notification"
+        component={NotificationScreen}
         options={({route}) => ({
           tabBarIcon: ({focused}) => (
             <Image
@@ -73,7 +78,7 @@ const Tabs = (props) => {
       />
        <Tab.Screen
         name="Profile"
-        component={HomeScreen}
+        component={ProfileScreen}
         options={({route}) => ({
           tabBarIcon: ({focused}) => (
             <Image
