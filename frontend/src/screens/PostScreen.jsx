@@ -6,6 +6,7 @@ import {
   Image,
   View,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -23,7 +24,7 @@ const user1 = {
 const PostScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.user);
-  // const {isSuccess} = useSelector(state => state.isSuccess)
+  const {isSuccess, isLoading} = useSelector(state => state.post);
   const [activeIndex, setActiveIndex] = useState(0);
   const [active, setActive] = useState(false);
   const [title, setTitle] = useState('');
@@ -44,9 +45,14 @@ const PostScreen = ({navigation}) => {
     ) {
       setReplies([]);
     }
-    // if (isSuccess) {
-    //   navigation.navigate('Home');
-    // }
+    if (isSuccess) {
+      navigation.goBack();
+    }
+    // chay ham thi state isSuccess thay doi
+
+    setReplies([]);
+    setTitle('');
+    setImage([]);
   }, []);
 
   const handleTitleChange = (index, text) => {
@@ -143,117 +149,43 @@ const PostScreen = ({navigation}) => {
   };
 
   const createPost = () => {
-    if (title !== '' || image !== '') {
+    if (title !== '' || (image !== '' && !isLoading)) {
       createPostAction(title, image, user, replies)(dispatch);
     }
   };
 
   return (
     <SafeAreaView className="flex-1 justify-between bg-gray-900 w-full h-full">
-      <View>
-        <View className="w-full flex-row border-b border-gray-600 pb-4 mt-4">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text className="text-[16px] font-normal text-white ml-4 items-center">
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <Text className="pl-[120px] text-[18px] font-medium text-white text-center items-center">
-            New thread
-          </Text>
-        </View>
-        {/* Create post */}
-
-        <View className="mt-6 ml-4 flex-row">
-          <Image
-            source={
-              user1?.avatar?.url
-                ? {uri: user1.avatar.url}
-                : require('../../assets/images/avatar.jpg')
-            }
-            style={{width: 40, height: 40, borderRadius: 100}}
-          />
-          <View className="pl-3">
-            <View className="w-[100%] flex-row">
-              <Text className="text-[18px] font-medium text-white pl-3">
-                {user1.name}
+      <ScrollView className="h-full bg-gray-900" showsVerticalScrollIndicator={false}>
+        <View>
+          <View className="w-full flex-row border-b border-gray-600 pb-4 mt-4">
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text className="text-[16px] font-normal text-white ml-4 items-center">
+                Cancel
               </Text>
-              {(title || image.length > 0) && (
-                <TouchableOpacity onPress={clearContent}>
-                  <AntDesign
-                    name="close"
-                    size={20}
-                    color={'gray'}
-                    style={{paddingStart: 250}}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-            <TextInput
-              placeholder="What's new?"
-              placeholderTextColor={'gray'}
-              value={title}
-              onChangeText={text => setTitle(text)}
-              style={{height: 40}}
-              className="pl-3 text-white"
-            />
-            <View className="flex-row gap-4">
-              {image.length > 0 &&
-                image.map((item, index) => (
-                  <View key={index} className="m-2">
-                    <Image
-                      source={{uri: item}}
-                      width={200}
-                      height={300}
-                      resizeMethod="auto"
-                      alt="image"
-                    />
-                  </View>
-                ))}
-            </View>
-            <TouchableOpacity className="mt-3" onPress={uploadPostImage}>
-              <AntDesign
-                name="picture"
-                size={24}
-                color={'gray'}
-                className="pl-3"
-              />
             </TouchableOpacity>
+            <Text className="pl-[120px] text-[18px] font-medium text-white text-center items-center">
+              New thread
+            </Text>
           </View>
-        </View>
-        {replies.length === 0 && (
-          <View className="flex-row w-full m-9 items-start mt-5 opacity-7 gap-5">
+          {/* Create post */}
+
+          <View className="mt-6 ml-4 flex-row">
             <Image
               source={
                 user1?.avatar?.url
                   ? {uri: user1.avatar.url}
                   : require('../../assets/images/avatar.jpg')
               }
-              style={{width: 25, height: 25, borderRadius: 100}}
+              style={{width: 40, height: 40, borderRadius: 100}}
             />
-            <Text className="text-gray-500" onPress={addFreshNewThread}>
-              Add new thread
-            </Text>
-          </View>
-        )}
-
-        {/* Create replies */}
-        {replies.map((item, index) => (
-          <View key={index}>
-            <View className="mt-6 ml-4 flex-row">
-              <Image
-                source={
-                  user1?.avatar?.url
-                    ? {uri: user1.avatar.url}
-                    : require('../../assets/images/avatar.jpg')
-                }
-                style={{width: 40, height: 40, borderRadius: 100}}
-              />
-              <View className="pl-3">
-                <View className="w-[100%] flex-row">
-                  <Text className="text-[18px] font-medium text-white pl-3">
-                    {user1.name}
-                  </Text>
-                  <TouchableOpacity onPress={() => removeThread(index)}>
+            <View className="pl-3">
+              <View className="w-[100%] flex-row">
+                <Text className="text-[18px] font-medium text-white pl-3">
+                  {user1.name}
+                </Text>
+                {(title || image.length > 0) && (
+                  <TouchableOpacity onPress={clearContent}>
                     <AntDesign
                       name="close"
                       size={20}
@@ -261,59 +193,135 @@ const PostScreen = ({navigation}) => {
                       style={{paddingStart: 250}}
                     />
                   </TouchableOpacity>
-                </View>
-                <TextInput
-                  placeholder="Say more..."
-                  placeholderTextColor={'gray'}
-                  value={item.title}
-                  onChangeText={text => handleTitleChange(index, text)}
-                  style={{height: 40}}
-                  className="pl-3 text-white"
-                />
-                <View className="flex-row gap-4">
-                  {item.image.length > 0 &&
-                    item.image.map((item, index) => (
-                      <View key={index} className="m-2">
-                        <Image
-                          source={{uri: item.image}}
-                          width={200}
-                          height={300}
-                          resizeMethod="auto"
-                          alt="image"
-                        />
-                      </View>
-                    ))}
-                </View>
-                <TouchableOpacity
-                  className="mt-3"
-                  onPress={() => uploadRepliesImage(index)}>
-                  <AntDesign
-                    name="picture"
-                    size={24}
-                    color={'gray'}
-                    className="pl-3"
-                  />
-                </TouchableOpacity>
+                )}
               </View>
+              <TextInput
+                placeholder="What's new?"
+                placeholderTextColor={'gray'}
+                value={title}
+                onChangeText={text => setTitle(text)}
+                style={{height: 40}}
+                className="pl-3 text-white"
+              />
+              <ScrollView className="gap-3" horizontal={true} showsHorizontalScrollIndicator={false}>
+                {image.length > 0 &&
+                  image.map((item, index) => (
+                    <View key={index} className="m-2">
+                      <Image
+                        source={{uri: item}}
+                        width={200}
+                        height={300}
+                        resizeMethod="auto"
+                        alt="image"
+                      />
+                    </View>
+                  ))}
+              </ScrollView>
+              <TouchableOpacity className="mt-1" onPress={uploadPostImage}>
+                <AntDesign
+                  name="picture"
+                  size={24}
+                  color={'gray'}
+                  className="pl-3"
+                />
+              </TouchableOpacity>
             </View>
-            {index === activeIndex && (
-              <View className="flex-row w-full m-9 items-start mt-5 opacity-7 gap-5">
+          </View>
+          {replies.length === 0 && (
+            <View className="flex-row w-full m-9 items-start mt-5 opacity-7 gap-5">
+              <Image
+                source={
+                  user1?.avatar?.url
+                    ? {uri: user1.avatar.url}
+                    : require('../../assets/images/avatar.jpg')
+                }
+                style={{width: 25, height: 25, borderRadius: 100}}
+              />
+              <Text className="text-gray-500" onPress={addFreshNewThread}>
+                Add new thread
+              </Text>
+            </View>
+          )}
+
+          {/* Create replies */}
+          {replies.map((item, index) => (
+            <View key={index}>
+              <View className="mt-6 ml-4 flex-row">
                 <Image
                   source={
                     user1?.avatar?.url
                       ? {uri: user1.avatar.url}
                       : require('../../assets/images/avatar.jpg')
                   }
-                  style={{width: 25, height: 25, borderRadius: 100}}
+                  style={{width: 40, height: 40, borderRadius: 100}}
                 />
-                <Text className="text-gray-500" onPress={addNewThread}>
-                  Add new thread
-                </Text>
+                <View className="pl-3">
+                  <View className="w-[100%] flex-row">
+                    <Text className="text-[18px] font-medium text-white pl-3">
+                      {user1.name}
+                    </Text>
+                    <TouchableOpacity onPress={() => removeThread(index)}>
+                      <AntDesign
+                        name="close"
+                        size={20}
+                        color={'gray'}
+                        style={{paddingStart: 250}}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput
+                    placeholder="Say more..."
+                    placeholderTextColor={'gray'}
+                    value={item.title}
+                    onChangeText={text => handleTitleChange(index, text)}
+                    style={{height: 40}}
+                    className="pl-3 text-white"
+                  />
+                  <ScrollView className="gap-3" showsHorizontalScrollIndicator={false}>
+                    {item.image.length > 0 &&
+                      item.image.map((item, index) => (
+                        <View key={index} className="m-2">
+                          <Image
+                            source={{uri: item}}
+                            width={200}
+                            height={300}
+                            resizeMethod="auto"
+                            alt="image"
+                          />
+                        </View>
+                      ))}
+                  </ScrollView>
+                  <TouchableOpacity
+                    className="mt-3"
+                    onPress={() => uploadRepliesImage(index)}>
+                    <AntDesign
+                      name="picture"
+                      size={24}
+                      color={'gray'}
+                      className="pl-3"
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
-            )}
-          </View>
-        ))}
-      </View>
+              {index === activeIndex && (
+                <View className="flex-row w-full m-9 items-start mt-5 opacity-7 gap-5">
+                  <Image
+                    source={
+                      user1?.avatar?.url
+                        ? {uri: user1.avatar.url}
+                        : require('../../assets/images/avatar.jpg')
+                    }
+                    style={{width: 25, height: 25, borderRadius: 100}}
+                  />
+                  <Text className="text-gray-500" onPress={addNewThread}>
+                    Add new thread
+                  </Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
       <View className="p-6 flex-row justify-between text-cente border-t border-gray-500">
         <Text className="text-gray-500">Anyone can reply</Text>
         <TouchableOpacity onPress={createPost}>

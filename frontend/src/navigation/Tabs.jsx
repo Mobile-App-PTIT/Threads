@@ -17,7 +17,9 @@ const Tabs = (props) => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarHideOnKeyboard: true,
-        
+        tabBarStyle: {
+          backgroundColor: 'rgba(18,25,40,1)'
+        }
       }}>
       <Tab.Screen
         name="Home2"
@@ -28,7 +30,7 @@ const Tabs = (props) => {
               source={{
                 uri: focused ? 'https://cdn-icons-png.flaticon.com/512/6997/6997164.png' : 'https://cdn-icons-png.flaticon.com/512/6998/6998782.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'black' : 'gray'}}
+              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
             />
           ),
         })}
@@ -42,7 +44,7 @@ const Tabs = (props) => {
               source={{
                 uri: 'https://cdn-icons-png.flaticon.com/512/3031/3031293.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'black' : 'gray'}}
+              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
             />
           ),
         })}
@@ -57,7 +59,7 @@ const Tabs = (props) => {
               source={{
                 uri: 'https://cdn-icons-png.flaticon.com/512/3161/3161837.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'black' : 'gray'}}
+              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
             />
           ),
         })}
@@ -71,7 +73,7 @@ const Tabs = (props) => {
               source={{
                 uri: focused ? 'https://cdn-icons-png.flaticon.com/512/2077/2077502.png' : 'https://cdn-icons-png.flaticon.com/512/151/151910.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'black' : 'gray'}}
+              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
             />
           ),
         })}
@@ -85,7 +87,7 @@ const Tabs = (props) => {
               source={{
                 uri: focused ? 'https://cdn-icons-png.flaticon.com/512/14673/14673907.png' : 'https://cdn-icons-png.flaticon.com/512/17123/17123228.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'black' : 'gray'}}    
+              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}    
             />
           ),
         })}
