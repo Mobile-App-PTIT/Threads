@@ -7,6 +7,9 @@ const passport = require('passport');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const compression = require('compression');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerDocs = require('./swagger.json');
 const initWebRoutes = require('./routes/init.route');
 const User = require('./models/user.model');
 
@@ -18,6 +21,9 @@ app.use(cors());
 // app.use(helmet());
 app.use(compression());
 app.use(morgan('dev'));
+
+// Swagger setup
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 initWebRoutes(app);
 

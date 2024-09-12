@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  title: Swagger Auth Service API - OpenAPI 3.0
+  description: |-
+    This is the Auth Service API based on OpenAPI 3.0 specification. You can learn more about Swagger at [https://swagger.io](https://swagger.io). 
+
+    This service provides APIs for user registration, login, and user management. You can use these APIs to integrate authentication functionality into your application.
+
+    Some useful links:
+    - [The Auth Service repository](https://github.com/your-repo/auth-service)
+    - [The source API definition for the Auth Service](https://github.com/your-repo/auth-service/blob/master/src/swagger.yaml)
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://localhost:3000
+    description: Local server
+tags:
+  - name: signup
+    description: Register a new user
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: login
+    description: Login to the system
+    externalDocs:
+      description: Find out more about our store
+      url: http://swagger.io
+  - name: refresh-token
+    description: Refresh the access token for the user
+    externalDocs:
+      description: Find out more about our store
+      url: http://swagger.io
+paths:
+  /register:
+    post:
+      tags:
+        - signup
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: johndoe
+        '400':
+          description: Invalid input
+  /login:
+    post:
+      tags:
+        - login
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Unauthorized
+  /refresh-token:
+    post:
+      tags:
+        - refresh-token
+      summary: Refresh the access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  example: dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Unauthorized
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: johndoe
+    Token:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          example: dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
