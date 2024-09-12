@@ -77,12 +77,33 @@ export const loginUser = (email, password) => async dispatch => {
       type: 'userLoginSuccess',
       payload: data.user,
     });
-    // if (data.token) {
-    //   await AsyncStorage.setItem('token', data.token);
-    // }
+    if (data.token) {
+      await AsyncStorage.setItem('token', data.token);
+    }
   } catch (error) {
     dispatch({
       type: 'userLoginFailed',
+      payload: error.response.data.message,
+    });
+  }
+}
+
+// logout user
+export const logoutUser = () => async dispatch => {
+  try {
+    dispatch({
+      type: 'userLogoutRequest',
+    })
+
+    await AsyncStorage.setItem('token', '');
+
+    dispatch({
+      type: 'userLogoutSuccess',
+      payload: {}
+    })
+  } catch (error) {
+    dispatch({
+      type: 'userLogoutFailed',
       payload: error.response.data.message,
     });
   }

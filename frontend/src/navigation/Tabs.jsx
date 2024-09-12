@@ -18,7 +18,8 @@ const Tabs = (props) => {
         tabBarShowLabel: false,
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          backgroundColor: 'rgba(18,25,40,1)'
+          // backgroundColor: 'rgba(18,25,40,1)'
+          backgroundColor: 'black'
         }
       }}>
       <Tab.Screen
