@@ -15,11 +15,17 @@ function RunCommandInNewTab
         [string]$Path,
         [string]$Title,
         [string]$Command,        
-        [bool]$WaitForCompletion = $true
+        [bool]$WaitForCompletion = $true,
+        [bool]$IsInstall = $false
     )
 
     wt -w 0 nt -p $Title -d "$Path" --title "$Title" pwsh -NoExit -Command "$Command"
-    if ($WaitForCompletion)
+
+    if($IsInstall)
+    {
+        Write-Host "Please wait for the packages to install..."
+    }
+    elseif ($WaitForCompletion)
     {
         Write-Host "Press Enter to continue after $Title completes "
         Read-Host
@@ -32,7 +38,8 @@ function RunCommandInNewTab
 
 function RunAll {
     param (
-        [string]$Command
+        [string]$Command,
+        [bool]$IsInstall = $false
     )
     for ($i = 0; $i -lt $projects.Length; $i++) {
         $project = $projects[$i]
@@ -42,7 +49,7 @@ function RunAll {
             $wait = $false
         }
         Write-Host "Running $( $project.Title )..."
-        RunCommandInNewTab -Path $project.Path -Title $project.Title -Command $Command -WaitForCompletion $wait
+        RunCommandInNewTab -Path $project.Path -Title $project.Title -Command $Command -WaitForCompletion $wait -IsInstall $IsInstall 
     }
 }
 
@@ -50,7 +57,7 @@ function RunAll {
 $choice = Read-Host "Enter 'install' to install packages or 'run' to start projects"
 
 if ($choice -eq 'install') {
-    RunAll -Command $installPackages
+    RunAll -Command $installPackages -IsInstall $true
 } elseif ($choice -eq 'run') {
     RunAll -Command $runProject
 } else {
