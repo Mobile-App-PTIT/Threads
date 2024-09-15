@@ -11,6 +11,7 @@ Threads is an innovative mobile application designed to facilitate the creation 
     - [Database (MongoDB with Docker)](#database-mongodb-with-docker)
     - [Frontend (React Native)](#frontend-react-native)
     - [Backend (Node.js)](#backend-nodejs)
+    - [Microservices (Node.js)](#microservices-nodejs)
 - [Contributing](#contributing)
 - [Contact](#contact)
 - [License](#license)
@@ -153,6 +154,30 @@ Before you begin, ensure you have met the following requirements:
    ```
 
    **Note:** List of available APIs can be found here: [API Documentation](backend/README.md).
+
+#### Microservices (Node.js)
+
+1. Navigate to the `microservices` directory:
+
+   ```sh
+   cd microservices
+   ```
+
+2. Install dependencies:
+
+   ```sh
+   .\dev.ps1
+   ```
+
+   enter `install` to install dependencies.
+
+3. Start the microservices:
+
+   ```sh
+   .\dev.ps1
+   ```
+
+   enter `run` to start the microservices.
 
 ## Contributing
 
