@@ -155,8 +155,8 @@ const PostScreen = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView className="flex-1 justify-between bg-black w-full h-full">
-      <ScrollView className="h-full bg-black" showsVerticalScrollIndicator={false}>
+    <SafeAreaView className="flex-1 justify-between bg-zinc-900 w-full h-full">
+      <ScrollView className="h-full bg-zinc-900" showsVerticalScrollIndicator={false}>
         <View>
           <View className="w-full flex-row border-b border-gray-600 pb-4 mt-4">
             <TouchableOpacity onPress={() => navigation.goBack()}>

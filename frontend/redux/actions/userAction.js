@@ -108,3 +108,27 @@ export const logoutUser = () => async dispatch => {
     });
   }
 }
+
+export const getAllUsers = () => async dispatch => {
+  try {
+    dispatch({
+      type: 'getUsersRequest',
+    });
+
+    const token = await AsyncStorage.getItem('token');
+
+    const {data} = await axios.get(`${uri}/users`, {
+      headers: {Authorization: `Bearer ${token}`},
+    });
+
+    dispatch({
+      type: 'getUsersSuccess',
+      payload: data.users,
+    });
+  } catch (error) {
+    dispatch({
+      type: 'getUsersFailed',
+      payload: error.response.data.message,
+    });
+  }
+}

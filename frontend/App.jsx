@@ -1,5 +1,6 @@
 import './global.css';
 import React, {useState, useEffect} from 'react';
+import { Text } from 'react-native';
 import Auth from './src/navigation/Auth';
 import Main from './src/navigation/Main';
 import Store from './redux/store';
@@ -17,7 +18,8 @@ function App() {
 
 const AppStack = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const {isAuthenticated, isLoading} = useSelector(state => state.user);
+  // const {isAuthenticated, isLoading} = useSelector(state => state.user);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     Store.dispatch(loadUser());
@@ -31,7 +33,7 @@ const AppStack = () => {
         <>
           {isLogin ? ( // sau thay = isAuthenticated
             <NavigationContainer>
-              <Main />
+              <Main/>
             </NavigationContainer>
           ) : (
             <NavigationContainer>

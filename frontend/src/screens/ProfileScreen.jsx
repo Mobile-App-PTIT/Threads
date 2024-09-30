@@ -33,8 +33,8 @@ const ProfileScreen = () => {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} className="bg-black">
-      <SafeAreaView className="w-full bg-black">
+    <ScrollView showsVerticalScrollIndicator={false} className="bg-zinc-900">
+      <SafeAreaView className="w-full bg-zinc-900">
         <View className="flex-row justify-between m-5">
           <View>
             <SimpleLineIcons name="globe" size={27} color="white" />
