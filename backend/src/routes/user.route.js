@@ -3,12 +3,12 @@ const userController = require("../controllers/user.controller");
 
 const router = express.Router();
 
-router.get("/:userId", userController.getUserInfo);
+router.get("/:user_id", userController.getUserInfo);
 router.get("/", userController.getAllUserInfo);
-router.patch("/:userId", userController.updateUserInfo);
-router.delete("/:userId", userController.deleteUser);
+router.patch("/:user_id", userController.updateUserInfo);
+router.delete("/:user_id", userController.deleteUser);
 
-router.get("/followers/:userId", userController.getUserFollowers);
-router.get("/following/:userId", userController.getUserFollowing);
+router.get("/followers/:user_id", userController.getUserFollowers);
+router.get("/following/:user_id", userController.getUserFollowing);
 
 module.exports = router;

@@ -2,6 +2,7 @@ const User = require("../models/user.model");
 
 const updateUserInfo = async (req, res, next) => {
   try {
+    const { user_id } = req.params;
     const { name, bio, email, image } = req.body;
     if (!name || !bio || !email || !image) {
       return res.status(400).json({
@@ -11,7 +12,7 @@ const updateUserInfo = async (req, res, next) => {
 
     const user = await User.findByIdAndUpdate(
       {
-        _id: req.params.userId,
+        _id: user_id,
       },
       {
         name,
@@ -33,10 +34,10 @@ const updateUserInfo = async (req, res, next) => {
 
 const getUserInfo = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { user_id } = req.params;
 
     const user = await User.findById({
-      _id: userId,
+      _id: user_id,
     })
       .select("-password -username -createdAt -updatedAt -__v")
       .lean();
@@ -67,14 +68,14 @@ const getAllUserInfo = async (req, res, next) => {
 
 const deleteUser = async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    if(userId !== req.params.userId) {
+    const user_id = req.user._id;
+    if(user_id !== req.params.user_id) {
       return res.status(403).json({
         message: "You are not authorized to delete this user",
       });
     }
 
-    await User.findByIdAndDelete(userId);
+    await User.findByIdAndDelete(user_id);
 
     res.status(200).json({
       message: "User deleted successfully",
@@ -86,10 +87,10 @@ const deleteUser = async (req, res, next) => {
 
 const getUserFollowers = async (req, res, next) => {
   try {
-    const userId = req.params.userId;
+    const { user_id } = req.params;
 
     const user = await User.findById({
-      _id: userId,
+      _id: user_id,
     })
       .select("followers")
       .populate("followers", "name image");
@@ -107,10 +108,10 @@ const getUserFollowers = async (req, res, next) => {
 
 const getUserFollowing = async (req, res, next) => {
   try {
-    const userId = req.params.userId;
+    const { user_id } = req.params;
 
     const user = await User.findById({
-      _id: userId,
+      _id: user_id,
     })
       .select("following")
       .populate("following", "name image");

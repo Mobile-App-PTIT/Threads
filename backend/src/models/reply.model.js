@@ -20,6 +20,11 @@ const replySchema = new Schema({
         ref: 'Reply',
         default: [],
     },
+    post_id: { // post_id of the post to which this reply belongs
+        type: Types.ObjectId,
+        ref: 'Post',
+        required: true,
+    },
     user_id: { // user_id of the person who replied
         type: Types.ObjectId,
         ref: 'User',

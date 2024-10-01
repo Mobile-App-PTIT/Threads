@@ -110,6 +110,10 @@ const deletePost = async (req, res, next) => {
             _id: post_id,
         });
 
+        await Reply.deleteMany({
+            post_id,
+        });
+
         res.status(200).json({
             message: "Post deleted successfully",
         });
