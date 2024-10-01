@@ -7,8 +7,8 @@ const postSchema = new Schema({
         required: true,
     },
     image: {
-        type: String,
-        default: '',
+        type: Array,
+        default: [],
     },
     status: {
         type: String,

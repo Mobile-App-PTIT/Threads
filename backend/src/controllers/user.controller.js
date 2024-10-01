@@ -11,7 +11,7 @@ const updateUserInfo = async (req, res, next) => {
 
     const user = await User.findByIdAndUpdate(
       {
-        _id: req.user._id,
+        _id: req.params.userId,
       },
       {
         name,
@@ -24,7 +24,7 @@ const updateUserInfo = async (req, res, next) => {
 
     res.status(200).json({
       message: "User info updated successfully",
-      user,
+      metadata: user,
     });
   } catch (err) {
     next(err);
@@ -33,7 +33,7 @@ const updateUserInfo = async (req, res, next) => {
 
 const getUserInfo = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const { userId } = req.params;
 
     const user = await User.findById({
       _id: userId,
@@ -42,16 +42,37 @@ const getUserInfo = async (req, res, next) => {
       .lean();
 
     res.status(200).json({
-      user,
+      message: "User info fetched successfully",
+      metadata: user,
     });
   } catch (err) {
     next(err);
   }
 };
 
+const getAllUserInfo = async (req, res, next) => {
+  try {
+    const users = await User.find()
+      .select("-password -username -createdAt -updatedAt -__v")
+      .lean();
+
+    res.status(200).json({
+      message: "All users info fetched successfully",
+      metadata: users,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 const deleteUser = async (req, res, next) => {
   try {
     const userId = req.user._id;
+    if(userId !== req.params.userId) {
+      return res.status(403).json({
+        message: "You are not authorized to delete this user",
+      });
+    }
 
     await User.findByIdAndDelete(userId);
 
@@ -108,6 +129,7 @@ const getUserFollowing = async (req, res, next) => {
 module.exports = {
   updateUserInfo,
   getUserInfo,
+  getAllUserInfo,
   deleteUser,
   getUserFollowers,
   getUserFollowing,
