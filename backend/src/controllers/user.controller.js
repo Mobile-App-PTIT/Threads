@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const Reply = require("../models/reply.model");
 
 const updateUserInfo = async (req, res, next) => {
   try {
@@ -84,6 +85,25 @@ const deleteUser = async (req, res, next) => {
     next(err);
   }
 };
+
+const getUserReply = async (req, res, next) => {
+  try {
+    const { user_id } = req.params;
+    
+    const replies = await Reply.find({
+      user_id,
+    }).populate({
+      'path': 'post_id',
+    }).lean();
+
+    res.status(200).json({
+      message: "User replies fetched successfully",
+      metadata: replies,
+    });
+  } catch (err) {
+    next(err);
+  } 
+}
 
 const getUserFollowers = async (req, res, next) => {
   try {
