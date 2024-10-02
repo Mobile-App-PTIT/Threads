@@ -3,7 +3,8 @@ const postController = require('../controllers/post.controller');
 
 const router = express.Router();
 
-router.get('/:post_id', postController.getPostById);
+router.get('/reply/:reply_id', postController.getPostReplies);
+router.get('/:post_id', postController.getPostReplies);
 router.get('/', postController.getAllPosts);
 router.post('/', postController.createPost);
 router.patch('/:post_id', postController.updatePost);
