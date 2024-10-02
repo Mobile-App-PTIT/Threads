@@ -24,7 +24,7 @@ const userData = {
   followers: 100,
 };
 
-const ProfileScreen = () => {
+const ProfileScreen = ({navigation}) => {
   const {user} = useSelector(state => state.user);
   const dispatch = useDispatch();
 
@@ -70,7 +70,7 @@ const ProfileScreen = () => {
         {/* Render first 3 followers avatar */}
 
         <View className="flex-row items-center justify-between m-5 mt-7">
-          <TouchableOpacity className="w-[45%] border border-gray-500 h-[40] rounded-xl">
+          <TouchableOpacity className="w-[45%] border border-gray-500 h-[40] rounded-xl" onPress={() => navigation.navigate('EditProfile')}>
             <Text className="text-white text-center pt-2">Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity

@@ -78,6 +78,8 @@ const SearchScreen = () => {
         i.name.toLowerCase().includes(e.toLowerCase()),
       );
       setData(filteredUsers);
+    } else {
+      setData(userData)
     }
   };
 
@@ -178,7 +180,7 @@ const SearchScreen = () => {
                               )
                                 ? 'Following'
                                 : 'Follow'} */}
-                                Follow
+                                Follows
                             </Text>
                           </TouchableOpacity>
                     </View>
