@@ -29,10 +29,10 @@ const createPost = async (req, res, next) => {
 
 const getPost = async (req, res, next) => {
     try {
-        const { postId } = req.params;
+        const { post_id } = req.params;
 
         const post = await Post.findById({
-            _id: postId,
+            _id: post_id,
         })
         .populate({
             'path': 'replies',
@@ -122,10 +122,30 @@ const deletePost = async (req, res, next) => {
     }
 }
 
+const getPostReplies = async (req, res, next) => {
+    try {
+        const { reply_id } = req.params;
+
+        const replies = await Reply.findById({
+            _id: reply_id,
+        }).populate({
+            'path': 'replies',
+        }).lean();
+
+        res.status.json({
+            message: "Replies fetched successfully",
+            metadata: replies,
+        });
+    } catch(err) {
+        next(err);
+    }
+}
+
 module.exports = {
     createPost,
     getPost,
     getAllPosts,
     updatePost,
     deletePost,
+    getPostReplies,
 }
