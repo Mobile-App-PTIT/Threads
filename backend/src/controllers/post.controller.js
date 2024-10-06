@@ -84,7 +84,7 @@ const updatePost = async (req, res, next) => {
 
         const post = await Post.findByIdAndUpdate(
             {
-                _id: user_id,
+                _id: post_id,
             },
             {
                 title,

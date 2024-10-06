@@ -1,4 +1,7 @@
 const User = require("../models/user.model");
+const redisClient = require("../configs/redis");
+
+redisClient.connect();
 
 const updateUserInfo = async (req, res, next) => {
   try {
@@ -23,6 +26,8 @@ const updateUserInfo = async (req, res, next) => {
       { new: true }
     );
 
+    await redisClient.set(`user:${user_id}`, JSON.stringify(user));
+
     res.status(200).json({
       message: "User info updated successfully",
       metadata: user,
@@ -36,11 +41,23 @@ const getUserInfo = async (req, res, next) => {
   try {
     const { user_id } = req.params;
 
+    // Check if user data is cached in Redis
+    const cachedUser = await redisClient.get(`user:${user_id}`);
+    if (cachedUser) {
+      return res.status(200).json({
+        message: "User info fetched successfully (from cache)",
+        metadata: JSON.parse(cachedUser),
+      });
+    }
+
     const user = await User.findById({
       _id: user_id,
     })
-      .select("-password -username -createdAt -updatedAt -__v")
-      .lean();
+    .select("-password -username -createdAt -updatedAt -__v")
+    .lean();
+
+    // Cache the user data in Redis
+    await redisClient.set(`user:${user_id}`, JSON.stringify(user));
 
     res.status(200).json({
       message: "User info fetched successfully",
@@ -76,6 +93,9 @@ const deleteUser = async (req, res, next) => {
     }
 
     await User.findByIdAndDelete(user_id);
+
+    // Remove user data from Redis cache
+    await redisClient.del(`user:${user_id}`);
 
     res.status(200).json({
       message: "User deleted successfully",
