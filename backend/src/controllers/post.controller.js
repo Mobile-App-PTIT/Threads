@@ -1,5 +1,8 @@
 const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
+const redisClient = require('../configs/redis');
+
+redisClient.connect();
 
 const createPost = async (req, res, next) => {
     try {
@@ -31,6 +34,14 @@ const getPost = async (req, res, next) => {
     try {
         const { post_id } = req.params;
 
+        const cachedPost = await redisClient.get(`post:${post_id}`);
+        if (cachedPost) {
+            return res.status(200).json({
+                message: "Post fetched successfully (from cache)",
+                metadata: JSON.parse(cachedPost),
+            });
+        }
+
         const post = await Post.findById({
             _id: post_id,
         })
@@ -40,6 +51,8 @@ const getPost = async (req, res, next) => {
                 'path': 'replies',
             }
         });
+
+        await redisClient.set(`post:${post_id}`, JSON.stringify(post));
 
         res.status(200).json({
             message: "Post fetched successfully",
@@ -94,6 +107,8 @@ const updatePost = async (req, res, next) => {
             { new: true }
         );
 
+        await redisClient.set(`post:${post_id}`, JSON.stringify(post));
+
         res.status(200).json({
             message: "Post updated successfully",
             metadata: post,
@@ -113,6 +128,8 @@ const deletePost = async (req, res, next) => {
         await Reply.deleteMany({
             post_id,
         });
+
+        await redisClient.del(`post:${post_id}`);
 
         res.status(200).json({
             message: "Post deleted successfully",

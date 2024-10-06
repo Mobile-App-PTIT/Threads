@@ -106,7 +106,7 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-const getUserReply = async (req, res, next) => {
+const getUserReplied = async (req, res, next) => {
   try {
     const { user_id } = req.params;
     
@@ -172,6 +172,7 @@ module.exports = {
   getUserInfo,
   getAllUserInfo,
   deleteUser,
+  getUserReplied,
   getUserFollowers,
   getUserFollowing,
 };
