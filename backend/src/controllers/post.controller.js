@@ -1,5 +1,6 @@
 const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
+const { uploadImage, deleteImage } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
 redisClient.connect();
@@ -13,10 +14,11 @@ const createPost = async (req, res, next) => {
                 message: "All fields are required",
             });
         }
-
+        
+        const cloudImage = await uploadImage(image, 'posts');
         const post = await Post.create({
             title,
-            image,
+            image: cloudImage,
             status,
             user_id,
         });
@@ -121,7 +123,7 @@ const updatePost = async (req, res, next) => {
 const deletePost = async (req, res, next) => {
     try {
         const { post_id } = req.params;
-        await Post.findByIdAndDelete({
+        const post = await Post.findByIdAndDelete({
             _id: post_id,
         });
 
@@ -129,6 +131,7 @@ const deletePost = async (req, res, next) => {
             post_id,
         });
 
+        await deleteImage(post.image);
         await redisClient.del(`post:${post_id}`);
 
         res.status(200).json({

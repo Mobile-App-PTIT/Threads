@@ -1,6 +1,5 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const passport = require("passport");
@@ -9,6 +8,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const initWebRoutes = require("./routes/init.route");
 const User = require("./models/user.model");
+require("dotenv").config();
 
 const app = express();
 
