@@ -18,8 +18,8 @@ function App() {
 
 const AppStack = () => {
   const [isLogin, setIsLogin] = useState(true);
-  // const {isAuthenticated, isLoading} = useSelector(state => state.user);
-  const [isLoading, setIsLoading] = useState(false);
+  const {isAuthenticated, isLoading} = useSelector(state => state.user);
+  const [isLoading1, setIsLoading1] = useState(false);
 
   useEffect(() => {
     Store.dispatch(loadUser());

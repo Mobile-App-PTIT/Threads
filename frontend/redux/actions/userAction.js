@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {uri} from '../uri';
+import uri from '../uri';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // register user
@@ -16,7 +16,7 @@ export const registerUser = (name, email, password) => async dispatch => {
     };
 
     const {data} = await axios.post(
-      `${uri}/signup`,
+      `${uri}/auth/signup`,
       {name, email, password},
       config,
     );
@@ -25,11 +25,12 @@ export const registerUser = (name, email, password) => async dispatch => {
       payload: data.user,
     });
     const user = JSON.stringify(data.user);
-    await AsyncStorage.setItem('user', user);
+    // await AsyncStorage.setItem('user', user);
+   
   } catch (error) {
     dispatch({
       type: 'userRegisterFailed',
-      payload: error.data.response.message,
+      payload: error.data.response.message || 'Registration failed',
     });
   }
 };
@@ -69,7 +70,7 @@ export const loginUser = (email, password) => async dispatch => {
       },
     };
     const {data} = await axios.post(
-      `${uri}/login`,
+      `${uri}/auth/login`,
       {email, password},
       config,
     );

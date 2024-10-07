@@ -11,7 +11,7 @@ import {
 import {useSelector, useDispatch} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {createPostAction} from '../../redux/actions/postAction';
 
 const user1 = {
@@ -218,8 +218,8 @@ const PostScreen = ({navigation}) => {
                   ))}
               </ScrollView>
               <TouchableOpacity className="mt-1" onPress={uploadPostImage}>
-                <AntDesign
-                  name="picture"
+                <Ionicons
+                  name="images-outline"
                   size={24}
                   color={'gray'}
                   className="pl-3"

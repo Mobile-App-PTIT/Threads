@@ -27,3 +27,4 @@ export const createPostAction = (title, image, user, replies) => async dispatch 
         });
     }
 }
+

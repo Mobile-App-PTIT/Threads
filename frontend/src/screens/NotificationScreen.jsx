@@ -13,6 +13,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import getTimeDuration from '../common/TimeGenerator';
 import {uri} from '../../redux/uri';
 import axios from 'axios';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 const NotificationScreen = () => {
   const dispatch = useDispatch();
   // const {notifications, isLoading} = useSelector(state => state.notification);
@@ -63,7 +65,7 @@ const NotificationScreen = () => {
           {labels.map((label, index) => (
             <TouchableOpacity
               key={index}
-              className="w-[140px] h-[40px] rounded-[8px] border border-gray-500"
+              className="w-[125px] h-[40px] rounded-[8px] border border-gray-500"
               style={{
                 backgroundColor: active === index ? 'white' : 'transparent',
                 borderWidth: active === index ? 1 : 0,
@@ -163,27 +165,13 @@ const NotificationScreen = () => {
                       />
                       {item.type === 'Like' && (
                         <View className="absolute bottom-5 border-[2px] border-[#fff] right-[-5px] h-[25px] w-[25px] bg-[#eb4545] rounded-full items-center justify-center flex-row">
-                          <Image
-                            source={{
-                              uri: 'https://cdn-icons-png.flaticon.com/512/2589/2589175.png',
-                            }}
-                            tintColor={'#fff'}
-                            width={15}
-                            height={15}
-                          />
+                          <AntDesign name='heart' color='white'/>
                         </View>
                       )}
 
                       {item.type === 'Follow' && (
                         <View className="absolute bottom-5 border-[2px] border-[#fff] right-[-5px] h-[25px] w-[25px] bg-[#5a49d6] rounded-full items-center justify-center flex-row">
-                          <Image
-                            source={{
-                              uri: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                            }}
-                            tintColor={'#fff'}
-                            width={12}
-                            height={12}
-                          />
+                         <Ionicons name='person' color='white' size={15}/>
                         </View>
                       )}
                     </View>
@@ -191,14 +179,14 @@ const NotificationScreen = () => {
                       <View className="flex-row w-full items-center border-b pb-3 border-gray-600">
                         <View className="w-full">
                           <View className="flex-row items-center">
-                            <Text className="text-[18px] text-white font-[600]">
+                            <Text className="text-[18px] text-white font-bold">
                               {item.creator.name}
                             </Text>
                             <Text className="pl-2 text-[16px] text-white font-[600]">
                               {formattedDuration}
                             </Text>
                           </View>
-                          <Text className="text-[16px] text-white font-[600]">
+                          <Text className="text-sm text-gray-400 font-medium">
                             {item.title}
                           </Text>
                         </View>
