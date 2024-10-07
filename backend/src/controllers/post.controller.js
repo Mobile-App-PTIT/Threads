@@ -3,8 +3,6 @@ const Reply = require('../models/reply.model');
 const { uploadImage, deleteImage } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
-redisClient.connect();
-
 const createPost = async (req, res, next) => {
     try {
         const user_id = req.user._id;

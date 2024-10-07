@@ -2,8 +2,6 @@ const User = require("../models/user.model");
 const Reply = require("../models/reply.model");
 const redisClient = require("../configs/redis");
 
-redisClient.connect();
-
 const updateUserInfo = async (req, res, next) => {
   try {
     const { user_id } = req.params;
