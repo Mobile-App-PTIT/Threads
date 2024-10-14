@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   Text,
   ScrollView,
@@ -7,26 +7,46 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
+import axios from 'axios';
+import uri from '../../redux/uri';
 import {useSelector} from 'react-redux';
 import {useDispatch} from 'react-redux';
 import {logoutUser} from '../../redux/actions/userAction';
-
+import {useFocusEffect} from '@react-navigation/native';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 
-const userData = {
-  name: 'Bui Nguyen Tung Lam',
-  email: '',
-  bio: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vel libero nec libero tincidunt luctus.',
-  avatar: '',
-  subname: 'Software Engineer',
-  followers: 100,
-};
-
 const ProfileScreen = ({navigation}) => {
   const {user} = useSelector(state => state.user);
+  const [followers, setFollowers] = useState();
+  const [userData, setUserData] = useState();
   const dispatch = useDispatch();
+
+  useFocusEffect(
+    useCallback(() => {
+      const followerCount = async () => {
+        try {
+          const response = await axios.get(`${uri}/user/followers/${user._id}`);
+          setFollowers(response.data.totalFollowers);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      const getUserInfo = async () => {
+        try {
+          const response = await axios.get(`${uri}/user/${user._id}`);
+          setUserData(response.data.metadata);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      getUserInfo();
+      followerCount();
+    }, [user]), // Add user as dependency to refetch when the user changes
+  );
 
   const logoutHandler = () => {
     logoutUser()(dispatch);
@@ -45,11 +65,15 @@ const ProfileScreen = ({navigation}) => {
           </View>
         </View>
         <View className="flex-row justify-between m-5 items-center">
-          <View className="gap-1">
-            <Text className="text-white font-bold text-3xl">
-              {userData.name}
+          <View className="">
+            <Text className="text-white font-bold text-4xl">
+              {userData?.name}
             </Text>
-            <Text className="text-white text-lg">{userData.subname}</Text>
+            {userData?.subname ? (
+              <Text className="text-white text-lg">{userData?.subname}</Text>
+            ) : (
+              <Text className="text-white text-lg">Update your subname</Text>
+            )}
           </View>
           <Image
             source={
@@ -60,17 +84,23 @@ const ProfileScreen = ({navigation}) => {
             style={{width: 70, height: 70, borderRadius: 100}}
           />
         </View>
-        <View className="mx-5 mt-3">
-          <Text className="text-white">{userData.bio}</Text>
+        <View className="mx-5">
+          {userData?.bio ? (
+            <Text className="text-white">{userData?.bio}</Text>
+          ) : (
+            <Text className="text-white">Update your bio</Text>
+          )}
         </View>
 
         <View className="mx-5 mt-5">
-          <Text className="text-white">{userData.followers} Followers</Text>
+          <Text className="text-white">{followers} Followers</Text>
         </View>
         {/* Render first 3 followers avatar */}
 
         <View className="flex-row items-center justify-between m-5 mt-7">
-          <TouchableOpacity className="w-[45%] border border-gray-500 h-[40] rounded-xl" onPress={() => navigation.navigate('EditProfile')}>
+          <TouchableOpacity
+            className="w-[45%] border border-gray-500 h-[40] rounded-xl"
+            onPress={() => navigation.navigate('EditProfile')}>
             <Text className="text-white text-center pt-2">Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -80,7 +110,9 @@ const ProfileScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
 
-        <View className="border-b border-gray-500" style={{ paddingBottom: 10, paddingTop: 5 }}>
+        <View
+          className="border-b border-gray-500"
+          style={{paddingBottom: 10, paddingTop: 20}}>
           <View className="flex-row justify-between items-center mx-4">
             <TouchableOpacity style={{flex: 1, alignItems: 'center'}}>
               <Text className="text-white text-[16px]">Threads</Text>

@@ -23,19 +23,16 @@ const PostCard = ({item, isReply, navigation, postId, replies}) => {
   const {posts} = useSelector(state => state.post);
   const [openModal, setOpenModal] = useState(false);
   const dispatch = useDispatch();
-  // const [userInfo, setUserInfo] = useState({
-  //   name: 'Bui Nguyen Tung Lam',
-  //   avatar: {
-  //     url: '../../assets/images/avatar.jpg',
-  //   },
-  // });
-
-  const userInfo = {
+  const [userInfo, setUserInfo] = useState({
     name: 'Bui Nguyen Tung Lam',
     avatar: {
-      url: '',
+      url: '../../assets/images/avatar.jpg',
     },
-  };
+  });
+
+  
+
+  console.log(user)
 
   const time = item?.createdAt;
   const formattedDuration = getTimeDuration(time);
@@ -81,13 +78,13 @@ const PostCard = ({item, isReply, navigation, postId, replies}) => {
       });
   };
 
-  // useEffect(() => {
-  //   if (users) {
-  //     const updatedUsers = [...users, user];
-  //     const userData = updatedUsers.find(user => user._id === item.user._id);
-  //     setUserInfo(userData);
-  //   }
-  // }, [users]);
+  useEffect(() => {
+    if (users) {
+      const updatedUsers = [...users, user];
+      const userData = updatedUsers.find(user => user._id === item.user._id);
+      setUserInfo(userData);
+    }
+  }, [users]);
 
   return (
     <View className="p-[15px] border-b border-gray-700">

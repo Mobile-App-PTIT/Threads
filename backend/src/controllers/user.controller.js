@@ -5,8 +5,8 @@ const redisClient = require("../configs/redis");
 const updateUserInfo = async (req, res, next) => {
   try {
     const { user_id } = req.params;
-    const { name, bio, email, image } = req.body;
-    if (!name || !bio || !email || !image) {
+    const { subname, name, bio, image } = req.body;
+    if (!name || !bio) {
       return res.status(400).json({
         message: "All fields are required",
       });
@@ -19,7 +19,7 @@ const updateUserInfo = async (req, res, next) => {
       {
         name,
         bio,
-        email,
+        subname,
         image,
       },
       { new: true }

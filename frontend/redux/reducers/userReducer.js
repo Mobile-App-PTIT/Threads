@@ -8,6 +8,7 @@ const intialState = {
   users: [],
   token:"",
   error: null,
+  followers: 0,
 };
 
 export const userReducer = createReducer(intialState, (builder) => {
@@ -28,7 +29,6 @@ export const userReducer = createReducer(intialState, (builder) => {
   })
   .addCase('userLoadRequest', (state) => {
     state.loading = true;
-    state.isAuthenticated = false;
   })
   .addCase('userLoadSuccess', (state, action) => {
     state.loading = false;

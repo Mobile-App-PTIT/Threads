@@ -35,29 +35,6 @@ export const registerUser = (name, email, password) => async dispatch => {
   }
 };
 
-// load user
-export const loadUser = () => async dispatch => {
-  try {
-    dispatch({
-      type: 'userLoadRequest',
-    });
-
-    const jsonValue = await AsyncStorage.getItem('user');
-    if (jsonValue != null) {
-      const user = JSON.parse(jsonValue);
-      dispatch({
-        type: 'userLoadSuccess',
-        payload: user,
-      });
-    }
-  } catch (error) {
-    dispatch({
-      type: 'userLoadFailed',
-      payload: error.response.data.message,
-    });
-  }
-};
-
 // login user
 export const loginUser = (email, password) => async dispatch => {
   try {
@@ -110,6 +87,7 @@ export const logoutUser = () => async dispatch => {
   }
 }
 
+
 export const getAllUsers = () => async dispatch => {
   try {
     dispatch({
@@ -133,3 +111,4 @@ export const getAllUsers = () => async dispatch => {
     });
   }
 }
+

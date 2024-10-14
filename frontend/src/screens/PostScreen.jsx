@@ -165,7 +165,7 @@ const PostScreen = ({navigation}) => {
               </Text>
             </TouchableOpacity>
             <Text className="pl-[120px] text-[18px] font-medium text-white text-center items-center">
-              New thread
+              New threads
             </Text>
           </View>
           {/* Create post */}

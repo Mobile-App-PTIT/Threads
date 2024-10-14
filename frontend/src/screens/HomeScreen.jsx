@@ -33,62 +33,12 @@ const postData = [
       userId: '1c6374b4-be49-4867-9ff5-d3a21743fc38',
       userAvatar: '../assets/images/avatar.jpg',
     },
-    likes: [
-      {
-        name: 'Rachel Gonzalez',
-        userName: 'luisharrison',
-        userId: 'b631a27c-c586-45f7-873f-8ecd4ca975f5',
-        userAvatar: '../../assets/images/avatar.jpg',
-      },
-      {
-        name: 'Mark King',
-        userName: 'garysharp',
-        userId: '80a7e7d3-e601-4d5c-b9cf-1a81098509ac',
-        userAvatar: '../../assets/images/avatar.jpg',
-      },
-      {
-        name: 'Jennifer Wolfe',
-        userName: 'rsherman',
-        userId: '8f402fb3-ca5c-42bb-ab82-71bb34396772',
-        userAvatar: '../../assets/images/avatar.jpg',
-      },
-    ],
-    replies: [
-      {
-        user: {
-          name: 'Jennifer Brown',
-          userName: 'george84',
-          userId: '1c6374b4-be49-4867-9ff5-d3a21743fc38',
-          userAvatar: '../../assets/images/avatar.jpg',
-        },
-        title: 'Great post!',
-        image: {
-          public_id: 'xyz123',
-          url: '',
-        },
-        createdAt: '2024-09-21 08:58:31',
-        likes: [
-          {
-            name: 'Carol Byrd',
-            userName: 'pchristian',
-            userId: '650e6ed4-c75b-476f-ab9d-978cff5a9d56',
-            userAvatar: '../../assets/images/avatar.jpg',
-          },
-        ],
-        reply: [],
-      },
-    ],
   },
 ];
 
-const userData = {
-  name: 'Jennifer Brown',
-  userName: 'george84',
-  avatar: '',
-};
-
 const HomeScreen = props => {
   const {posts, isLoading} = useSelector(state => state.post);
+  const {user} = useSelector(state => state.user);
   const dispatch = useDispatch();
   const [offsetY, setOffsetY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -173,15 +123,15 @@ const HomeScreen = props => {
           <View className="flex flex-row gap-4">
             <Image
               source={
-                userData?.avatar
-                  ? {uri: userData.avatar}
+                user?.avatar
+                  ? {uri: user?.avatar}
                   : require('../../assets/images/avatar.jpg')
               }
               style={{width: 40, height: 40, borderRadius: 100}}
             />
             <View className="flex flex-col gap-6">
               <View>
-                <Text className="text-white">{userData.name}</Text>
+                <Text className="text-white">{user?.name}</Text>
                 <Text className="text-gray-500">What's new?</Text>
               </View>
               <View className="flex flex-row gap-4">
@@ -208,9 +158,9 @@ const HomeScreen = props => {
           progress={progress}
         />
         {/* custom loader not working in android that's why I used here built in loader for android and custom loader for android but both working perfectly */}
-        {Platform.OS === 'ios' ? (
+        {/* {Platform.OS === 'ios' ? (
           <FlatList
-            data={postData}
+            data={post}
             showsVerticalScrollIndicator={false}
             renderItem={({item}) => (
               <PostCard navigation={props.navigation} item={item} />
@@ -257,7 +207,7 @@ const HomeScreen = props => {
               />
             }
           />
-        )}
+        )} */}
       </SafeAreaView>
     </>
   );

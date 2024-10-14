@@ -31,10 +31,6 @@ const LoginScreen = ({navigation}) => {
       if (error) {
         Alert.alert(error)
       }
-      if (isAuthenticated) {
-        navigation.navigate('Home2')
-        Alert.alert('Login successful')
-      }
     }, [])
 
   return (

@@ -108,10 +108,13 @@ const login = async (req, res, next) => {
       message: "Login successful.",
       accessToken,
       refreshToken,
-      _id: user._id,
-      name: user.name,
       tokenType: "Bearer",
       expiresIn: process.env.JWT_ACCESS_EXPIRATION,
+      user: {
+        _id: user._id,
+        name: user.name,
+        avatar: user.avatar,
+      }
     });
   } catch (err) {
     if (!err.statusCode) err.statusCode = 500;
