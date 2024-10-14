@@ -3,6 +3,7 @@ const Reply = require('../models/reply.model');
 const { uploadImage, deleteImage } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
+// Post 
 const createPost = async (req, res, next) => {
     try {
         const user_id = req.user._id;
@@ -140,6 +141,7 @@ const deletePost = async (req, res, next) => {
     }
 }
 
+// Reply to a post
 const getPostReplies = async (req, res, next) => {
     try {
         const { reply_id } = req.params;
@@ -159,11 +161,51 @@ const getPostReplies = async (req, res, next) => {
     }
 }
 
+const createReply = async (req, res, next) => {
+    try {
+        const user_id  = req.user._id;
+        const { post_id } = req.params;
+        const { title, image } = req.body;
+        if (!reply) {
+            return res.status(400).json({
+                message: "Reply field is required",
+            });
+        }
+
+        const reply = await Reply.create({
+            post_id,
+            title: title,
+            user_id,
+            image,
+        })
+
+        await Post.findByIdAndUpdate(
+            {
+                _id: post_id,
+            },
+            {
+                $push: {
+                    replies: reply._id,
+                }
+            }
+        )
+
+        res.status(201).json({
+            message: "Reply created successfully",
+            metadata: reply,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     createPost,
     getPost,
     getAllPosts,
     updatePost,
     deletePost,
+
     getPostReplies,
+    createReply,
 }
