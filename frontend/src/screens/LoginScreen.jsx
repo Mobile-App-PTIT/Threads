@@ -22,9 +22,9 @@ const LoginScreen = ({navigation}) => {
     const [password, setPassword] = useState('');
     const {error, isAuthenticated} = useSelector(state => state.user);
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         console.log(email, password)
-        loginUser(email, password)(dispatch)
+        await loginUser(email, password)(dispatch)
     }
 
     useEffect(() => {
@@ -32,7 +32,7 @@ const LoginScreen = ({navigation}) => {
         Alert.alert(error)
       }
       if (isAuthenticated) {
-        navigation.navigate('Home')
+        navigation.navigate('Home2')
         Alert.alert('Login successful')
       }
     }, [])

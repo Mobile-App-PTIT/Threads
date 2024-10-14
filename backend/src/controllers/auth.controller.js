@@ -48,6 +48,7 @@ const signup = async (req, res, next) => {
     const hashPassword = await bcrypt.hash(password, 12);
     const user = new User({ email, password: hashPassword, name });
     await user.save();
+    console.log("User created.");
     res.status(201).json({ message: "User created." });
   } catch (err) {
     if (!err.statusCode) err.statusCode = 500;

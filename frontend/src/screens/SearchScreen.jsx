@@ -86,7 +86,7 @@ const SearchScreen = () => {
   return (
     <SafeAreaView className="bg-zinc-900 flex-1">
       <View className="p-5 bg-zinc-900">
-        <Text className="text-white text-2xl text-bold">Search</Text>
+        <Text className="text-white text-3xl font-[700]">Search</Text>
         <View className="relative pt-2">
           <FontAwesome
             name="search"

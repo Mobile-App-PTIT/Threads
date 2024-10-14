@@ -27,18 +27,17 @@ const RegisterScreen = ({navigation}) => {
 
   useEffect(() => {
     if (error) {
-      Alert.alert(error)
-      console.log(error)
+      Alert.alert(error);
+      console.log(error);
     }
     if (isAuthenticated) {
-      Alert.alert('Account created successfully');  
-      navigation.navigate('Home')
+      Alert.alert('Account created successfully');
+      navigation.navigate('Home2');
     }
   }, [error, isAuthenticated]);
 
-  const handleRegister = () => {
-    console.log(email, password, name);
-    registerUser(email, password, name)(dispatch);
+  const handleRegister = async () => {
+    await registerUser(name, email, password)(dispatch);
   };
 
   return (
@@ -58,6 +57,23 @@ const RegisterScreen = ({navigation}) => {
         </View>
         <View className="mt-10 gap-3">
           <View className="gap-8">
+          <View className="flex-row items-center gap-2 border-[2px] border-black py-1 rounded-lg">
+              <Ionicons
+                className="ml-2"
+                name="person"
+                size={24}
+                color="black"
+              />
+              <TextInput
+                className="w-[300px] h-[40px] text-black"
+                placeholder="Enter your name"
+                placeholderTextColor="black"
+                value={name}
+                onChangeText={e => {
+                  setName(e);
+                }}
+              />
+            </View>
             <View className="flex-row items-center gap-2 border-[2px] border-black py-1 rounded-lg">
               <MaterialIcons
                 className=" ml-2"
@@ -90,24 +106,6 @@ const RegisterScreen = ({navigation}) => {
                 value={password}
                 onChangeText={e => {
                   setPassword(e);
-                }}
-              />
-            </View>
-            <View className="flex-row items-center gap-2 border-[2px] border-black py-1 rounded-lg">
-              <Ionicons
-                className="ml-2"
-                name="person"
-                size={24}
-                color="black"
-              />
-              <TextInput
-                className="w-[300px] h-[40px] text-black"
-                placeholder="Enter your name"
-                placeholderTextColor="black"
-                secureTextEntry={true}
-                value={name}
-                onChangeText={e => {
-                  setName(e);
                 }}
               />
             </View>

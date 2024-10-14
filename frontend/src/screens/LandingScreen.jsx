@@ -9,7 +9,7 @@ const LandingScreen = ({navigation}) => {
         source={require('../../assets/images/Pattern.png')}
       />
 
-      <TouchableOpacity onPress={() => {navigation.navigate('Login')}} className="flex-[0.5] bg-white mt-10 mx-10 rounded-2xl justify-between items-center flex-row px-6 border-2 border-gray-200">
+      <TouchableOpacity onPress={() => {navigation.navigate('Login')}} className="flex-[0.5] bg-white m-12 rounded-2xl justify-between items-center flex-row px-6 border-2 border-gray-200">
         <View className="flex-row justify-center items-center gap-3">
           <Image
             className="w-[70px] h-[70px]"

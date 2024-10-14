@@ -7,6 +7,8 @@ import NotificationScreen from '../screens/NotificationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 const Tab = createBottomTabNavigator();
 
 const Tabs = (props) => {
@@ -34,6 +36,7 @@ const Tabs = (props) => {
               }}
               style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
             />
+            // <Ionicons size={30} name='home' color={focused ? 'white' : 'gray'}/>
           ),
         })}
       />

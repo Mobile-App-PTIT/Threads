@@ -1,5 +1,5 @@
 const express = require('express');
-const { upload } = require('../configs/cloundinary')
+const { upload } = require('../configs/cloudinary')
 const postController = require('../controllers/post.controller');
 
 const router = express.Router();

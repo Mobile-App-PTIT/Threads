@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const { Schema, model, Types } = mongoose;
 
 const userSchema = new Schema({
-  username: {
+  subname: {
     type: String,
-    required: true,
+    required: false,
   },
   password: {
     type: String,
