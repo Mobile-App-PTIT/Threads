@@ -1,6 +1,5 @@
-const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
-const { uploadImage, deleteImage } = require('../configs/cloudinary');
+const { uploadImage } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
 const createReplyToReply = async (req, res, next) => {
@@ -42,6 +41,30 @@ const createReplyToReply = async (req, res, next) => {
     }
 }
 
+const getRepliesOfReply = async (req, res, next) => {
+    try {
+        const { reply_id } = req.params;
+
+        const replies = await Reply.find({
+            replies: reply_id,
+        }).populate({
+            'path': 'replies',            
+            'select': 'title image likes',
+        }).populate({
+            'path': 'user_id',
+        }).lean();
+
+        await redisClient.set(`reply:${reply_id}`, JSON.stringify(replies));
+        res.status(200).json({
+            message: "Replies fetched successfully",
+            metadata: replies,
+        });
+    } catch(err) {
+        next(err);
+    }
+}
+
 module.exports = {
     createReplyToReply,
+    getRepliesOfReply,
 }
