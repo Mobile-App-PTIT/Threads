@@ -19,7 +19,6 @@ export const userReducer = createReducer(intialState, (builder) => {
   })
   .addCase('userRegisterSuccess', (state, action) => {
     state.loading = false;
-    state.isAuthenticated = true;
     state.user = action.payload;
   })    
   .addCase('userRegisterFailed', (state, action) => {

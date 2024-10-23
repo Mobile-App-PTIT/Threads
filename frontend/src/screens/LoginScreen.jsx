@@ -24,7 +24,8 @@ const LoginScreen = ({navigation}) => {
 
     const handleLogin = async () => {
         console.log(email, password)
-        await loginUser(email, password)(dispatch)
+       await loginUser(email, password)(dispatch)
+        
     }
 
     useEffect(() => {

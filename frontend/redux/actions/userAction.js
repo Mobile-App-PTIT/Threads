@@ -22,10 +22,7 @@ export const registerUser = (name, email, password) => async dispatch => {
     );
     dispatch({
       type: 'userRegisterSuccess',
-      payload: data.user,
     });
-    const user = JSON.stringify(data.user);
-    // await AsyncStorage.setItem('user', user);
    
   } catch (error) {
     dispatch({
@@ -51,12 +48,13 @@ export const loginUser = (email, password) => async dispatch => {
       {email, password},
       config,
     );
+    console.log(data.accessToken)
     dispatch({
       type: 'userLoginSuccess',
       payload: data.user,
     });
-    if (data.token) {
-      await AsyncStorage.setItem('token', data.token);
+    if (data.accessToken) {
+      await AsyncStorage.setItem('token', data.accessToken);
     }
   } catch (error) {
     dispatch({

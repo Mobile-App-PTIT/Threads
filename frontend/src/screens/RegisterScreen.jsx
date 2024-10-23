@@ -31,7 +31,7 @@ const RegisterScreen = ({navigation}) => {
     }
     if (isAuthenticated) {
       Alert.alert('Account created successfully');
-      navigation.navigate('Home2');
+      navigation.navigate('Login');
     }
   }, [error, isAuthenticated]);
 
@@ -116,7 +116,7 @@ const RegisterScreen = ({navigation}) => {
 
           <TouchableOpacity
             onPress={handleRegister}
-            className="w-[200px] h-[60px] bg-black p-4 mt-[80px] mx-auto rounded-xl items-center justify-center"
+            className="w-[200px] h-[60px] bg-black p-4 mt-[100px] mx-auto rounded-xl items-center justify-center"
           >
             <Text className="text-center text-white font-bold text-lg">
               Register

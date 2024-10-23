@@ -6,9 +6,9 @@ const redisClient = require('../configs/redis');
 // Post 
 const createPost = async (req, res, next) => {
     try {
-        const user_id = req.user._id;
-        const { title, image, status } = req.body;
-        if (!title || !image || !status) {
+        const user_id = req.userId;
+        const { title, image } = req.body;
+        if (!title || !image) {
             return res.status(400).json({
                 message: "All fields are required",
             });
