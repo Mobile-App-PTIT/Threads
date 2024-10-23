@@ -199,6 +199,68 @@ const createReply = async (req, res, next) => {
     }
 }
 
+const updateReply = async (req, res, next) => {
+    try {
+        const { reply_id } = req.params;
+        const { title, image } = req.body;
+        const checkUser = await Reply.findById({
+            _id: reply_id,
+        });
+
+        if (checkUser.user_id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                message: "You are not authorized to update this reply",
+            });
+        }
+
+        const reply = await Reply.findByIdAndUpdate(
+            {
+                _id: reply_id,
+            },
+            {
+                title,
+                image,
+            },
+            { new: true }
+        );
+
+        res.status(200).json({
+            message: "Reply updated successfully",
+            metadata: reply,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+const deleteReply = async (req, res, next) => {
+    try {
+        const { reply_id } = req.params;
+        const reply = await Reply.findByIdAndDelete({
+            _id: reply_id,
+        });
+
+        await Post.findByIdAndUpdate(
+            {
+                _id: reply.post_id,
+            },
+            {
+                $pull: {
+                    replies: reply_id,
+                }
+            }
+        );
+
+        await deleteImage(reply.image);
+
+        res.status(200).json({
+            message: "Reply deleted successfully",
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     createPost,
     getPost,
@@ -208,4 +270,6 @@ module.exports = {
 
     getPostReplies,
     createReply,
+    updateReply,
+    deleteReply,
 }
