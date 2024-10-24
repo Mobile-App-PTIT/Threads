@@ -1,3 +1,5 @@
+import axios from 'axios';
+import uri from '../../redux/uri';
 import {
   FlatList,
   Animated,
@@ -18,31 +20,16 @@ import PostCard from '../components/PostCard';
 import LottieView from 'lottie-react-native';
 import {getAllUsers} from '../../redux/actions/userAction';
 import {Platform} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const loader = require('../../assets/loader.json');
 
-const postData = [
-  {
-    title: 'Happen apply peace likely agency maintain put.',
-    image: {
-      public_id: '2dcf841d-3d89-4363-9353-b21c51f1883b',
-      url: '',
-    },
-    user: {
-      name: 'Jennifer Brown',
-      userName: 'george84',
-      userId: '1c6374b4-be49-4867-9ff5-d3a21743fc38',
-      userAvatar: '../assets/images/avatar.jpg',
-    },
-  },
-];
-
-const HomeScreen = props => {
-  const {posts, isLoading} = useSelector(state => state.post);
-  const {user} = useSelector(state => state.user);
-  const dispatch = useDispatch();
+const HomeScreen = (props) => {
+  const token = AsyncStorage.getItem('token');
+  const {user} = useSelector(state => state.user);  
+  const [posts, setPosts] = useState([]); 
+  const [isLoading, setIsLoading] = useState(true); 
   const [offsetY, setOffsetY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [extraPaddingTop] = useState(new Animated.Value(0));
   const refreshingHeight = 100;
   const lottieViewRef = useRef(null);
@@ -53,6 +40,30 @@ const HomeScreen = props => {
     progress = Math.min(offsetY / maxOffsetY, 1);
   }
 
+  // API call to fetch posts
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${uri}/post`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });  
+      setPosts(response.data.metadata);  
+      console.log('Posts:', response.data.metadata);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
   const onScroll = event => {
     const {nativeEvent} = event;
     const {contentOffset} = nativeEvent;
@@ -60,35 +71,18 @@ const HomeScreen = props => {
     setOffsetY(y);
   };
 
-  const onRelease = () => {
-    if (offsetY <= -refreshingHeight && !isRefreshing) {
-      setIsRefreshing(true);
-      setTimeout(() => {
-        getAllPosts()(dispatch);
-        setIsRefreshing(false);
-      }, 3000);
-    }
-  };
-
   const onScrollEndDrag = event => {
     const {nativeEvent} = event;
     const {contentOffset} = nativeEvent;
     const {y} = contentOffset;
     setOffsetY(y);
-
-    if (y <= -refreshingHeight && !isRefreshing) {
-      setIsRefreshing(true);
-      setTimeout(() => {
-        getAllPosts()(dispatch);
-        setIsRefreshing(false);
-      }, 3000);
-    }
   };
 
-  //   useEffect(() => {
-  //     getAllPosts()(dispatch);
-  //     getAllUsers()(dispatch);
-  //   }, [dispatch]);
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchPosts();  // Fetch posts again on refresh
+    setIsRefreshing(false);
+  };
 
   useEffect(() => {
     if (isRefreshing) {
@@ -157,57 +151,31 @@ const HomeScreen = props => {
           source={loader}
           progress={progress}
         />
-        {/* custom loader not working in android that's why I used here built in loader for android and custom loader for android but both working perfectly */}
-        {/* {Platform.OS === 'ios' ? (
-          <FlatList
-            data={post}
-            showsVerticalScrollIndicator={false}
-            renderItem={({item}) => (
-              <PostCard navigation={props.navigation} item={item} />
-            )}
-            onScroll={onScroll}
-            onScrollEndDrag={onScrollEndDrag}
-            onResponderRelease={onRelease}
-            ListHeaderComponent={
-              <Animated.View
-                style={{
-                  paddingTop: extraPaddingTop,
-                }}
-              />
-            }
-          />
-        ) : (
-          <FlatList
-            data={postData}
-            showsVerticalScrollIndicator={false}
-            renderItem={({item}) => (
-              <PostCard navigation={props.navigation} item={item} />
-            )}
-            onScroll={onScroll}
-            onScrollEndDrag={onScrollEndDrag}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => {
-                  setRefreshing(true);
-                  //   getAllPosts()(dispatch);
-                  //   getAllUsers()(dispatch).then(() => {
-                  //     setRefreshing(false);
-                  //   });
-                }}
-                progressViewOffset={refreshingHeight}
-              />
-            }
-            onResponderRelease={onRelease}
-            ListHeaderComponent={
-              <Animated.View
-                style={{
-                  paddingTop: extraPaddingTop,
-                }}
-              />
-            }
-          />
-        )} */}
+        {/* Display posts */}
+        <FlatList
+          data={posts}
+          showsVerticalScrollIndicator={false}
+          renderItem={({item}) => (
+            <PostCard navigation={props.navigation} item={item} />
+          )}
+          keyExtractor={(item, index) => index.toString()}
+          onScroll={onScroll}
+          onScrollEndDrag={onScrollEndDrag}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing || isLoading}
+              onRefresh={onRefresh}
+              progressViewOffset={refreshingHeight}
+            />
+          }
+          ListHeaderComponent={
+            <Animated.View
+              style={{
+                paddingTop: extraPaddingTop,
+              }}
+            />
+          }
+        />
       </SafeAreaView>
     </>
   );

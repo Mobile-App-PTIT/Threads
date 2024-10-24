@@ -69,7 +69,7 @@ const getPost = async (req, res, next) => {
 
 const getAllPosts = async (req, res, next) => {
     try {
-        const posts = await Post.find().orderBy({ createdAt: 1 });
+        const posts = await Post.find().sort({ createdAt: -1 });
 
         res.status(200).json({
             message: "All posts fetched successfully",

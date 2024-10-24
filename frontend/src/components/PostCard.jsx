@@ -15,7 +15,7 @@ import {
   removeLikes,
 } from '../../redux/actions/postAction';
 import axios from 'axios';
-import {uri} from '../../redux/uri';
+import uri from '../../redux/uri';
 import PostDetailsCard from '../components/PostDetailCard';
 
 const PostCard = ({item, isReply, navigation, postId, replies}) => {
@@ -29,10 +29,6 @@ const PostCard = ({item, isReply, navigation, postId, replies}) => {
       url: '../../assets/images/avatar.jpg',
     },
   });
-
-  
-
-  console.log(user)
 
   const time = item?.createdAt;
   const formattedDuration = getTimeDuration(time);
@@ -81,7 +77,7 @@ const PostCard = ({item, isReply, navigation, postId, replies}) => {
   useEffect(() => {
     if (users) {
       const updatedUsers = [...users, user];
-      const userData = updatedUsers.find(user => user._id === item.user._id);
+      const userData = updatedUsers.find(user => user?._id === item.user?._id);
       setUserInfo(userData);
     }
   }, [users]);
@@ -105,11 +101,13 @@ const PostCard = ({item, isReply, navigation, postId, replies}) => {
               <TouchableOpacity
                 className="flex-row items-center"
                 onPress={() => profileHandler(userInfo)}>
-                <View className='flex flex-row items-center gap-2'>
+                <View className="flex flex-row items-center gap-2">
                   <Text className="text-white font-[500] text-[16px]">
                     {userInfo?.name}
                   </Text>
-                  <Text className="text-gray-400 text-[12px]">{formattedDuration}</Text>
+                  <Text className="text-gray-400 text-[12px]">
+                    {formattedDuration}
+                  </Text>
                 </View>
 
                 {userInfo?.role === 'Admin' && (
@@ -164,7 +162,7 @@ const PostCard = ({item, isReply, navigation, postId, replies}) => {
           <TouchableOpacity
             onPress={() => reactsHandler(item)}
             className="flex flex-row gap-2 items-center">
-            {item.likes.length > 0 ? (
+            {Array.isArray(item.likes) && item.likes.length > 0 ? (
               <>
                 {item.likes.find(i => i.userId === user._id) ? (
                   <Image

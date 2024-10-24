@@ -94,13 +94,15 @@ export const getAllUsers = () => async dispatch => {
 
     const token = await AsyncStorage.getItem('token');
 
-    const {data} = await axios.get(`${uri}/users`, {
-      headers: {Authorization: `Bearer ${token}`},
+    const {data} = await axios.get(`${uri}/user`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
     });
 
     dispatch({
       type: 'getUsersSuccess',
-      payload: data.users,
+      payload: data.metadata,
     });
   } catch (error) {
     dispatch({
