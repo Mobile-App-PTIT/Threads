@@ -1,3 +1,5 @@
+import axios from 'axios';
+import uri from '../../redux/uri';
 import React, {useEffect, useState} from 'react';
 import {
   Text,
@@ -80,10 +82,35 @@ const PostScreen = ({navigation}) => {
   };
   
 
-  const createPost = () => {
-      createPostAction(title, image, user)(dispatch);
+  const createPost = async () => {
+    const formData = new FormData();
+    formData.append('title', title);
+    
+    // Append images to formData
+    image.forEach((img, index) => {
+      formData.append('images', {
+        uri: img,
+        type: 'image/jpeg',
+        name: `image_${index}.jpg`,
+      });
+    });
+  
+    try {
+      const response = await axios.post(`${uri}/post`, formData, {
+        headers: {
+          'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      if (response.data.success) {
+        console.log('Post uploaded successfully:', response.data);
+      }
+    } catch (error) {
+      console.error('Error uploading post:', error);
+    }
   };
-
+  
   return (
     <SafeAreaView className="flex-1 justify-between bg-zinc-900 w-full h-full">
       <ScrollView className="h-full bg-zinc-900" showsVerticalScrollIndicator={false}>

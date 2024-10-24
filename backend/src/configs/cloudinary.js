@@ -1,6 +1,5 @@
 const cloudinary = require('cloudinary').v2
 const multer = require('multer')
-const fs = require('fs')
 const dotenv = require('dotenv')
 dotenv.config()
 
@@ -10,33 +9,16 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-      const dir = './uploads';
-      if (!fs.existsSync(dir)){
-          fs.mkdirSync(dir);
-      }
-      cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-      cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+const storage = multer.memoryStorage();
 exports.upload = multer({ storage: storage });
 
-exports.uploadImage = async (imagePath, folder) => {
-  try {
-    const result = await cloudinary.uploader.upload(imagePath, {
-      folder: folder,
-      upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
-      timeout: 100000,
+exports.uploadImage = async (image) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload(image, { folder: 'threads' }, (error, result) => {
+      if (error) reject(error);
+      resolve(result.secure_url);
     });
-    console.log("Upload successful: ", result);
-    return result.url; // This is the URL of the uploaded image
-  } catch (error) {
-    console.error("Error uploading to Cloudinary: ", error);
-    throw error;
-  }
+  });
 }
 
 exports.deleteImage = async (imagePath) => {

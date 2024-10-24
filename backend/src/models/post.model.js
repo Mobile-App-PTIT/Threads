@@ -13,7 +13,7 @@ const postSchema = new Schema({
     status: {
         type: String,
         enum: ['public', 'private'],
-        required: true,
+        default: 'public',
     },
     like: {
         type: [Types.ObjectId],

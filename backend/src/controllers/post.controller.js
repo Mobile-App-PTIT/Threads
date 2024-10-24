@@ -7,24 +7,27 @@ const redisClient = require('../configs/redis');
 const createPost = async (req, res, next) => {
     try {
         const user_id = req.userId;
-        const { title, image } = req.body;
-        if (!title || !image) {
-            return res.status(400).json({
-                message: "All fields are required",
-            });
-        }
+        const { title } = req.body;
+        const imageFiles = req.files;
+
+        console.log(title, imageFiles);
         
-        const cloudImage = await uploadImage(image, 'posts');
-        const post = await Post.create({
+        const uploadedImages = await Promise.all(
+            imageFiles.map(async (file) => {
+              const imageBuffer = file.buffer.toString('base64');
+              const imageData = `data:image/jpeg;base64,${imageBuffer}`;
+              return await uploadImage(imageData);
+            })
+        );
+        const newPost = await Post.create({
             title,
-            image: cloudImage,
-            status,
+            image: uploadedImages,
             user_id,
         });
 
         res.status(201).json({
             message: "Post created successfully",
-            metadata: post,
+            metadata: newPost,
         });
     } catch(err) {
         next(err);
