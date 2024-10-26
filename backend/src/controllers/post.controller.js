@@ -69,16 +69,22 @@ const getPost = async (req, res, next) => {
 
 const getAllPosts = async (req, res, next) => {
     try {
-        const posts = await Post.find().sort({ createdAt: -1 });
+        const posts = await Post.find()
+            .populate({
+                path: 'user_id',
+                select: '-password -email' 
+            })
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             message: "All posts fetched successfully",
             metadata: posts,
         });
-    } catch(err) {
+    } catch (err) {
         next(err);
     }
-}
+};
+
 
 const updatePost = async (req, res, next) => {
     try {

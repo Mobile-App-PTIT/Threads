@@ -37,6 +37,7 @@ const PostScreen = ({navigation}) => {
       user: user || user1,
     },
   ]);
+  const [status, setStatus] = useState('public'); 
 
   useEffect(() => {
     if (
@@ -55,7 +56,6 @@ const PostScreen = ({navigation}) => {
     setTitle('');
     setImage([]);
   }, []);
-  
 
   const clearContent = () => {
     setTitle('');
@@ -80,12 +80,12 @@ const PostScreen = ({navigation}) => {
       }
     });
   };
-  
 
   const createPost = async () => {
     const formData = new FormData();
     formData.append('title', title);
-    
+    formData.append('status', status); 
+
     // Append images to formData
     image.forEach((img, index) => {
       formData.append('images', {
@@ -94,7 +94,7 @@ const PostScreen = ({navigation}) => {
         name: `image_${index}.jpg`,
       });
     });
-  
+
     try {
       const response = await axios.post(`${uri}/post`, formData, {
         headers: {
@@ -102,7 +102,7 @@ const PostScreen = ({navigation}) => {
           'Content-Type': 'multipart/form-data',
         },
       });
-  
+
       if (response.data.success) {
         console.log('Post uploaded successfully:', response.data);
       }
@@ -110,7 +110,7 @@ const PostScreen = ({navigation}) => {
       console.error('Error uploading post:', error);
     }
   };
-  
+
   return (
     <SafeAreaView className="flex-1 justify-between bg-zinc-900 w-full h-full">
       <ScrollView className="h-full bg-zinc-900" showsVerticalScrollIndicator={false}>
@@ -173,16 +173,6 @@ const PostScreen = ({navigation}) => {
                       />
                     </View>
                   ))}
-                  {/* {oneImage && (<View className="m-2">
-                      <Image
-                        source={{uri: oneImage}}
-                        width={200}
-                        height={300}
-                        resizeMethod="auto"
-                        alt="image"
-                      />
-                    </View>)} */}
-                  
               </ScrollView>
               <TouchableOpacity className="mt-1" onPress={uploadPostImage}>
                 <Ionicons
@@ -192,6 +182,29 @@ const PostScreen = ({navigation}) => {
                   className="pl-3"
                 />
               </TouchableOpacity>
+
+              {/* Privacy option buttons */}
+              <View className="mt-4 flex-row items-center">
+                <TouchableOpacity
+                  className="flex-row items-center mr-4"
+                  onPress={() => setStatus('public')}
+                >
+                  <View
+                    className={`w-5 h-5 rounded-full mr-2 ${status === 'public' ? 'bg-blue-800' : 'bg-gray-300'}`}
+                  />
+                  <Text className="text-white">Public</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  className="flex-row items-center"
+                  onPress={() => setStatus('private')}
+                >
+                  <View
+                    className={`w-5 h-5 rounded-full mr-2 ${status === 'private' ? 'bg-blue-800' : 'bg-gray-300'}`}
+                  />
+                  <Text className="text-white">Private</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
