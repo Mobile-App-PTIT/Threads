@@ -75,7 +75,7 @@ const getAllPosts = async (req, res, next) => {
                 select: '-password -email' 
             })
             .sort({ createdAt: -1 });
-
+        
         res.status(200).json({
             message: "All posts fetched successfully",
             metadata: posts,
@@ -146,6 +146,48 @@ const deletePost = async (req, res, next) => {
             message: "Post deleted successfully",
         });
     } catch(err) {
+        next(err);
+    }
+}
+
+// Like a post
+const likeOrUnlikePost = async (req, res, next) => {
+    try {
+        const { post_id } = req.params;
+        const user_id = req.userId;
+
+        const post = await Post.findById({
+            _id: post_id,
+        });
+        if(!post) {
+            return res.status(404).json({
+                message: "Post not found",
+            });
+        }
+
+        const hasLiked = post.like.includes(user_id);
+        if(hasLiked) {
+            await Post.updateOne({
+                _id: post_id,
+            }, {
+                $pull: {
+                    like: user_id,
+                }
+            })
+        } else {
+            await Post.updateOne({
+                _id: post_id,
+            }, {
+                $addToSet: {
+                    like: user_id,
+                }
+            })
+        }
+
+        res.status(200).json({
+            message: "Post liked successfully",
+        });
+    } catch (err) {
         next(err);
     }
 }
@@ -276,7 +318,7 @@ module.exports = {
     getAllPosts,
     updatePost,
     deletePost,
-
+    likeOrUnlikePost,
     getPostReplies,
     createReply,
     updateReply,

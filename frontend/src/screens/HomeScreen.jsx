@@ -15,12 +15,14 @@ import Feather from 'react-native-vector-icons/Feather';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
 const loader = require('../../assets/loader.json');
 
 const HomeScreen = (props) => {
+  const navigation = useNavigation();
   const { user } = useSelector((state) => state.user);
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,7 +76,7 @@ const HomeScreen = (props) => {
 
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await fetchPosts(); // Fetch posts again on refresh
+    await fetchPosts();
     setIsRefreshing(false);
   };
 
@@ -95,6 +97,35 @@ const HomeScreen = (props) => {
       }).start();
     }
   }, [isRefreshing]);
+
+  // Function to handle like/unlike API call
+  const toggleLike = async (postId, liked, index) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.patch(`${uri}/post/${postId}/like`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Update local state for like count and liked status
+      setPosts((prevPosts) =>
+        prevPosts.map((post, i) =>
+          i === index
+            ? {
+                ...post,
+                like: liked
+                  ? post.like.filter((id) => id !== user._id)
+                  : [...post.like, user._id],
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error('Error liking/unliking post:', error);
+    }
+  };
 
   return (
     <>
@@ -150,7 +181,7 @@ const HomeScreen = (props) => {
         <FlatList
           data={posts}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View className="p-[15px] border-b border-gray-700">
               <View className="relative">
                 <View className="flex-row w-full">
@@ -193,7 +224,7 @@ const HomeScreen = (props) => {
                         }}
                         onError={(error) =>
                           console.error('Error loading image:', error.nativeEvent.error)
-                        } 
+                        }
                         resizeMode="cover"
                       />
                     ))}
@@ -203,6 +234,50 @@ const HomeScreen = (props) => {
                     No Image Available
                   </Text>
                 )}
+                <View className="pl-[50px] pt-4 flex-row">
+                  {/* Like Icon and Count */}
+                  <TouchableOpacity
+                    onPress={() =>
+                      toggleLike(item._id, item.like.includes(user._id), index)
+                    }
+                    className="flex-row items-center mr-4"
+                  >
+                    <Ionicons
+                      name={item.like.includes(user._id) ? "heart" : "heart-outline"}
+                      size={20}
+                      color={item.like.includes(user._id) ? 'red' : 'white'}
+                    />
+                    <Text className="text-[16px] text-white ml-2">
+                      {item.like.length} {item.like.length > 1 ? 'Likes' : 'Like'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Reply Icon and Count */}
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('PostDetailScreen')
+                    }
+                    className="flex-row items-center mr-4"
+                  >
+                    <Ionicons name="chatbubble-outline" size={20} color="white" />
+                    <Text className="text-[16px] text-white ml-2">
+                      {item?.replies?.length !== 0
+                        ? `${item?.replies?.length} Replies`
+                        : '0 Replies'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Share Button */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      console.log('Share post', item._id);
+                    }}
+                    className="flex-row items-center"
+                  >
+                    <Feather name="share-2" size={20} color="white" />
+                    <Text className="text-[16px] text-white ml-2">Share</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           )}
