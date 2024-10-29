@@ -17,7 +17,7 @@ function App() {
 }
 
 const AppStack = () => {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const {isAuthenticated, isLoading} = useSelector(state => state.user);
   const [isLoading1, setIsLoading1] = useState(false);
 
@@ -27,7 +27,7 @@ const AppStack = () => {
         <Text className='text-black'>Loading</Text>
       ) : (
         <>
-          {isAuthenticated ? ( // sau thay = isAuthenticated
+          {isLogin ? ( // sau thay = isAuthenticated
             <NavigationContainer>
               <Main/>
             </NavigationContainer>
