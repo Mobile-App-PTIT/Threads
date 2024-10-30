@@ -20,6 +20,10 @@ const replySchema = new Schema({
         ref: 'Reply',
         default: [],
     },
+    createAt: {
+        type: Date,
+        default: Date.now,
+    },
     post_id: { // post_id of the post to which this reply belongs
         type: Types.ObjectId,
         ref: 'Post',

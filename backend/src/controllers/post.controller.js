@@ -46,17 +46,25 @@ const getPost = async (req, res, next) => {
             });
         }
 
-        const post = await Post.findById({
-            _id: post_id,
-        })
-        .populate({
-            'path': 'replies',
-            populate: {
-                'path': 'replies',
-            }
-        });
+        const post = await Post.findById(post_id)
+            .populate({
+                path: 'replies',
+                populate: {
+                    path: 'user_id',
+                }
+            })
+            .populate({
+                path: 'user_id',
+                select: '-password -email',
+            });
+        console.log(post);
+        if (!post) {
+            return res.status(404).json({
+                message: "Post not found",
+            });
+        }
 
-        await redisClient.set(`post:${post_id}`, JSON.stringify(post));
+        await redisClient.set(`post:${post_id}`, JSON.stringify(post), 'EX', 60);
 
         res.status(200).json({
             message: "Post fetched successfully",
@@ -193,25 +201,6 @@ const likeOrUnlikePost = async (req, res, next) => {
 }
 
 // Reply to a post
-const getPostReplies = async (req, res, next) => {
-    try {
-        const { reply_id } = req.params;
-
-        const replies = await Reply.findById({
-            _id: reply_id,
-        }).populate({
-            'path': 'replies',
-        }).lean();
-
-        res.status.json({
-            message: "Replies fetched successfully",
-            metadata: replies,
-        });
-    } catch(err) {
-        next(err);
-    }
-}
-
 const createReply = async (req, res, next) => {
     try {
         const user_id  = req.user._id;
@@ -319,7 +308,6 @@ module.exports = {
     updatePost,
     deletePost,
     likeOrUnlikePost,
-    getPostReplies,
     createReply,
     updateReply,
     deleteReply,

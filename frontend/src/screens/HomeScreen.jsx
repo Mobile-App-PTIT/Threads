@@ -272,7 +272,9 @@ const HomeScreen = props => {
 
                   {/* Reply Icon and Count */}
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('PostDetailScreen')}
+                    onPress={() => navigation.navigate('PostDetailScreen', {
+                      post_id: item._id,
+                    })}
                     className="flex-row items-center mr-4">
                     <Ionicons
                       name="chatbubble-outline"

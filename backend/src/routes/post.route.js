@@ -6,8 +6,7 @@ const postController = require('../controllers/post.controller');
 const router = express.Router();
 
 //Post
-router.get('/reply/:reply_id', postController.getPostReplies);
-router.get('/:post_id', postController.getPostReplies);
+router.get('/:post_id', postController.getPost);
 router.get('/', postController.getAllPosts);
 router.post('/', isAuth, upload.array('images'), postController.createPost);
 router.patch('/:post_id', postController.updatePost);
