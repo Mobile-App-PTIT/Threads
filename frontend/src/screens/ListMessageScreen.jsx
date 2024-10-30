@@ -24,8 +24,7 @@ const ListMessageScreen = ({navigation}) => {
       const filteredData = messsagesData.filter((item) => {
         return item.fullName.toLowerCase().includes(text.toLowerCase());
       })
-      console.log(messsagesData)
-      console.log(filteredData);
+     
       setData(filteredData);
     } else {
       setData(messsagesData);
@@ -37,7 +36,7 @@ const ListMessageScreen = ({navigation}) => {
       <TouchableOpacity
         className="flex-row w-full items-center justify-between"
         key={index}
-        onPress={() => navigation.navigate('Chat', {userName: item.fullName})}>
+        onPress={() => navigation.navigate('ChatScreen', {userName: item.fullName})}>
         {/*   style={[styles.userContainer, index % 2 !== 0 ? styles.background: null]} */}
         <View className="py-4">
           {item.isOnline && item.isOnline === true && (
