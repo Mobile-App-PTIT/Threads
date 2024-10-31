@@ -17,45 +17,22 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {createPostAction} from '../../redux/actions/postAction';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const user1 = {
-  name: 'John Doe',
-  // avatar: {
-  //   url: 'https://a0.muscache.com/im/pictures/f06bce03-0dc2-4719-acf8-25ec189ca8cf.jpg?im_w=720',
-  // },
-};
-
 const PostScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.user);
   const {isSuccess, isLoading} = useSelector(state => state.post);
   const [title, setTitle] = useState('');
   const [image, setImage] = useState([]);
-  const [replies, setReplies] = useState([
-    {
-      title: '',
-      image: [],
-      user: user || user1,
-    },
-  ]);
-  const [status, setStatus] = useState('public'); 
+  const [status, setStatus] = useState('public');
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
-    if (
-      replies.length === 1 &&
-      replies[0].title === '' &&
-      replies[0].image.length === 0
-    ) {
-      setReplies([]);
-    }
     if (isSuccess) {
       navigation.goBack();
+      setTitle('');
+      setImage([]);
     }
-    // chay ham thi state isSuccess thay doi
-
-    setReplies([]);
-    setTitle('');
-    setImage([]);
-  }, []);
+  }, [isSuccess]);
 
   const clearContent = () => {
     setTitle('');
@@ -76,7 +53,6 @@ const PostScreen = ({navigation}) => {
           image => 'data:image/jpeg;base64,' + image.data,
         );
         setImage([...image, ...selectedImages]);
-        // setOneImage('data:image/jpeg;base64,' + image.data);
       }
     });
   };
@@ -84,9 +60,8 @@ const PostScreen = ({navigation}) => {
   const createPost = async () => {
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('status', status); 
+    formData.append('status', status);
 
-    // Append images to formData
     image.forEach((img, index) => {
       formData.append('images', {
         uri: img,
@@ -98,7 +73,7 @@ const PostScreen = ({navigation}) => {
     try {
       const response = await axios.post(`${uri}/post`, formData, {
         headers: {
-          'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+          Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
           'Content-Type': 'multipart/form-data',
         },
       });
@@ -113,7 +88,9 @@ const PostScreen = ({navigation}) => {
 
   return (
     <SafeAreaView className="flex-1 justify-between bg-zinc-900 w-full h-full">
-      <ScrollView className="h-full bg-zinc-900" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="h-full bg-zinc-900"
+        showsVerticalScrollIndicator={false}>
         <View>
           <View className="w-full flex-row border-b border-gray-600 pb-4 mt-4">
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -125,12 +102,11 @@ const PostScreen = ({navigation}) => {
               New threads
             </Text>
           </View>
-          {/* Create post */}
 
           <View className="mt-6 ml-4 flex-row">
             <Image
               source={
-                user1?.avatar?.url
+                user?.avatar?.url
                   ? {uri: user?.avatar?.url}
                   : require('../../assets/images/avatar.jpg')
               }
@@ -160,7 +136,10 @@ const PostScreen = ({navigation}) => {
                 style={{height: 40}}
                 className="pl-3 text-white"
               />
-              <ScrollView className="gap-3" horizontal={true} showsHorizontalScrollIndicator={false}>
+              <ScrollView
+                className="gap-3"
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}>
                 {image.length > 0 &&
                   image.map((item, index) => (
                     <View key={index} className="m-2">
@@ -174,42 +153,75 @@ const PostScreen = ({navigation}) => {
                     </View>
                   ))}
               </ScrollView>
-              <TouchableOpacity className="mt-1" onPress={uploadPostImage}>
-                <Ionicons
-                  name="images-outline"
-                  size={24}
-                  color={'gray'}
-                  className="pl-3"
-                />
-              </TouchableOpacity>
+              <View className='flex-row gap-4'>
+                <TouchableOpacity onPress={uploadPostImage}>
+                  <Ionicons
+                    name="images-outline"
+                    size={24}
+                    color={'gray'}
+                    className="pl-3"
+                  />
+                </TouchableOpacity>
 
-              {/* Privacy option buttons */}
-              <View className="mt-4 flex-row items-center">
-                <TouchableOpacity
-                  className="flex-row items-center mr-4"
-                  onPress={() => setStatus('public')}
-                >
-                  <View
-                    className={`w-5 h-5 rounded-full mr-2 ${status === 'public' ? 'bg-blue-800' : 'bg-gray-300'}`}
-                  />
-                  <Text className="text-white">Public</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  className="flex-row items-center"
-                  onPress={() => setStatus('private')}
-                >
-                  <View
-                    className={`w-5 h-5 rounded-full mr-2 ${status === 'private' ? 'bg-blue-800' : 'bg-gray-300'}`}
-                  />
-                  <Text className="text-white">Private</Text>
-                </TouchableOpacity>
+                {/* Privacy option dropdown */}
+                <View className="flex-row items-center relative">
+                  <TouchableOpacity
+                    className="flex-row items-center"
+                    onPress={() => setDropdownVisible(!isDropdownVisible)}>
+                    {status === 'private' && (
+                      <Ionicons
+                        name="lock-closed-outline"
+                        size={21}
+                        color="gray"
+                        style={{marginRight: 3}}
+                      />
+                    )}
+                    {status === 'public' && (
+                      <Ionicons
+                        name="lock-open-outline"
+                        size={21}
+                        color="gray"
+                        style={{marginRight: 3}}
+                      />
+                    )}
+                    <Text className="text-white capitalize">{status}</Text>
+                  </TouchableOpacity>
+
+                  {/* Dropdown menu */}
+                  {isDropdownVisible && (
+                    <View
+                      className="absolute bg-gray-700 rounded p-2 shadow-lg"
+                      style={{
+                        top: 30,
+                        left: 10,
+                        zIndex: 10,
+                        width: 100,
+                      }}>
+                      <TouchableOpacity
+                        className="p-2"
+                        onPress={() => {
+                          setStatus('public');
+                          setDropdownVisible(false);
+                        }}>
+                        <Text className="text-white">Public</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="p-2"
+                        onPress={() => {
+                          setStatus('private');
+                          setDropdownVisible(false);
+                        }}>
+                        <Text className="text-white">Private</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           </View>
         </View>
       </ScrollView>
-      <View className="p-6 flex-row justify-between text-cente border-t border-gray-500">
+      <View className="p-6 flex-row justify-between text-center border-t border-gray-500">
         <Text className="text-gray-500">Anyone can reply</Text>
         <TouchableOpacity onPress={createPost}>
           <Text className="text-blue-600 text-[18px] font-medium">Post</Text>
