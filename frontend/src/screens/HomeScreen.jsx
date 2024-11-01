@@ -29,6 +29,7 @@ const HomeScreen = props => {
   const navigation = useNavigation();
   const {user} = useSelector(state => state.user);
   const [posts, setPosts] = useState([]);
+  const [following, setFollowing] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [offsetY, setOffsetY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -65,13 +66,18 @@ const HomeScreen = props => {
   const fetchFollowing = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`${uri}/user/following/${user._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const response = await axios.get(
+        `${uri}/user/following/${user._id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
-      console.log(response.data)
+      );
+      console.log(response.data);
+      setFollowing(response.data.following.map(f => f._id));
     } catch (error) {
       console.error('Error fetching following:', error);
     }
@@ -99,6 +105,7 @@ const HomeScreen = props => {
   const onRefresh = async () => {
     setIsRefreshing(true);
     await fetchPosts();
+    await fetchFollowing();
     setIsRefreshing(false);
   };
 
@@ -153,15 +160,25 @@ const HomeScreen = props => {
     }
   };
 
-  const handleFollowPress = async (id)=> {
+  const handleFollowPress = async id => {
     try {
       console.log('Following user:', id);
-      await axios.patch(`${uri}/user/follow/${id}`, {}, {
-        headers: {
-          Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
+      await axios.patch(
+        `${uri}/user/follow/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
+      const isFollowing = following.includes(id);
+      setFollowing(prevFollowing =>
+        isFollowing
+          ? prevFollowing.filter(userId => userId !== id)
+          : [...prevFollowing, id],
+      );
     } catch (error) {
       console.error('Error following user:', error);
     }
@@ -252,7 +269,15 @@ const HomeScreen = props => {
                         {/* Black circle with a "+" icon */}
                         {user?._id !== item?.user_id._id && (
                           <View className="absolute bottom-0 right-0 bg-white w-4 h-4 rounded-full items-center justify-center border border-black">
-                            <Ionicons name="add" size={12} color="black" />
+                            {following.includes(item?.user_id._id) ? (
+                              <Ionicons
+                                name="checkmark"
+                                size={12}
+                                color="black"
+                              />
+                            ) : (
+                              <Ionicons name="add" size={12} color="black" />
+                            )}
                           </View>
                         )}
                       </View>
