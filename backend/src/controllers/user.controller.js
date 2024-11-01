@@ -166,34 +166,42 @@ const FollowOrUnfollowUser = async (req, res, next) => {
 
     const checkFollow = await User.findOne({
       _id: user_id,
-      following: follower_id,
     })
 
-    if(checkFollow) {
+    if(checkFollow.following.includes(follower_id)) {
+      await User.findByIdAndUpdate({
+        _id: user_id,
+      }, {
+        $pull: { following: follower_id },
+      })
+
+      await User.findByIdAndUpdate({
+        _id: follower_id,
+      }, {
+        $pull: { followers: user_id },
+      })
+
+      return res.status(200).json({
+        message: "Unfollow successful",
+      });
+    } else {
+      await User.findByIdAndUpdate({
+        _id: user_id,
+      }, {
+        $addToSet: { following: follower_id },
+      })
+  
+      await User.findByIdAndUpdate({
+        _id: follower_id,
+      }, {
+        $addToSet: { followers: user_id },
+      })
+  
       res.status(200).json({
-        message: "User already followed",
+        message: "Follow successful",
       });
     }
 
-    await User.findByIdAndUpdate({
-      _id: user_id,
-    }, {
-      $addToSet: { following: follower_id },
-    }, {
-      new: true,
-    })
-
-    await User.findByIdAndUpdate({
-      _id: follower_id,
-    }, {
-      $addToSet: { followers: user_id },
-    }, {
-      new: true,
-    })
-
-    res.status(200).json({
-      message: "Follow/Unfollow successful",
-    });
   } catch(err) {
     next(err);
   }
