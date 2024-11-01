@@ -12,6 +12,6 @@ router.delete("/:user_id", userController.deleteUser);
 router.get("/replied/:user_id", userController.getUserReplied);
 router.get("/followers/:user_id", userController.getUserFollowers);
 router.get("/following/:user_id", userController.getUserFollowing);
-router.patch("follow/:follower_id", userController.FollowOrUnfollowUser);
+router.patch("/follow/:follower_id", userController.FollowOrUnfollowUser);
 
 module.exports = router;

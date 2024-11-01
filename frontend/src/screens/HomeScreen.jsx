@@ -71,11 +71,12 @@ const HomeScreen = props => {
           'Content-Type': 'application/json',
         },
       });
+      console.log(response.data)
     } catch (error) {
       console.error('Error fetching following:', error);
     }
   };
-  
+
   useEffect(() => {
     fetchPosts();
     fetchFollowing();
@@ -152,9 +153,10 @@ const HomeScreen = props => {
     }
   };
 
-  const handleFollowPress = async follower_id => {
+  const handleFollowPress = async (id)=> {
     try {
-      await axios.patch(`${uri}/user/follow/${follower_id}`, {
+      console.log('Following user:', id);
+      await axios.patch(`${uri}/user/follow/${id}`, {
         headers: {
           Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
           'Content-Type': 'application/json',
@@ -233,8 +235,8 @@ const HomeScreen = props => {
                   <View className="flex-row w-[85%] items-center">
                     <TouchableOpacity
                       onPress={() => {
-                        if (user?._id !== item?.user_id._id) {
-                          handleFollowPress(item?.user_id);
+                        if (user?._id !== item?.user_id?._id) {
+                          handleFollowPress(item?.user_id?._id);
                         }
                       }}>
                       <View style={{position: 'relative'}}>
