@@ -9,8 +9,8 @@ const router = express.Router();
 router.get('/:post_id', postController.getPost);
 router.get('/', postController.getAllPosts);
 router.post('/', isAuth, upload.array('images'), postController.createPost);
-router.patch('/:post_id', postController.updatePost);
-router.delete('/:post_id', postController.deletePost);
+router.patch('/:post_id', isAuth, postController.updatePost);
+router.delete('/:post_id', isAuth, postController.deletePost);
 
 //Like a post
 router.patch('/:post_id/like', postController.likeOrUnlikePost);

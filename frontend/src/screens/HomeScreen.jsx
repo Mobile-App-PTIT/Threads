@@ -156,7 +156,7 @@ const HomeScreen = props => {
   const handleFollowPress = async (id)=> {
     try {
       console.log('Following user:', id);
-      await axios.patch(`${uri}/user/follow/${id}`, {
+      await axios.patch(`${uri}/user/follow/${id}`, {}, {
         headers: {
           Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
           'Content-Type': 'application/json',

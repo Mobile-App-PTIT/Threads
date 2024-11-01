@@ -164,16 +164,31 @@ const FollowOrUnfollowUser = async (req, res, next) => {
     const user_id = req.userId;
     const { follower_id } = req.params;
 
+    const checkFollow = await User.findOne({
+      _id: user_id,
+      following: follower_id,
+    })
+
+    if(checkFollow) {
+      res.status(200).json({
+        message: "User already followed",
+      });
+    }
+
     await User.findByIdAndUpdate({
       _id: user_id,
     }, {
       $addToSet: { following: follower_id },
+    }, {
+      new: true,
     })
 
     await User.findByIdAndUpdate({
       _id: follower_id,
     }, {
       $addToSet: { followers: user_id },
+    }, {
+      new: true,
     })
 
     res.status(200).json({
