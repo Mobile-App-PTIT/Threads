@@ -165,6 +165,31 @@ const getUserFollowing = async (req, res, next) => {
   }
 };
 
+const FollowOrUnfollowUser = async (req, res, next) => {
+  try {
+    const user_id = req.userId;
+    const { follower_id } = req.params;
+
+    await User.findByIdAndUpdate({
+      _id: user_id,
+    }, {
+      $addToSet: { following: follower_id },
+    })
+
+    await User.findByIdAndUpdate({
+      _id: follower_id,
+    }, {
+      $addToSet: { followers: user_id },
+    })
+
+    res.status(200).json({
+      message: "Follow/Unfollow successful",
+    });
+  } catch(err) {
+    next(err);
+  }
+}
+
 module.exports = {
   updateUserInfo,
   getUserInfo,
@@ -173,4 +198,5 @@ module.exports = {
   getUserReplied,
   getUserFollowers,
   getUserFollowing,
+  FollowOrUnfollowUser
 };

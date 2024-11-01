@@ -1,5 +1,6 @@
 const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
+const User = require('../models/user.model');
 const { uploadImage, deleteImage } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
@@ -176,6 +177,48 @@ const likeOrUnlikePost = async (req, res, next) => {
     }
 }
 
+// Share a post
+const sharePost = async (req, res, next) => {
+    try {
+        const user_id = req.userId;
+        const { post_id } = req.params
+
+        await User.findByIdAndUpdate({
+            _id: user_id
+        }, {
+            $addToSet: { share: post_id }
+        })
+
+        res.status(200).json({
+            message: "Share successful"
+        })
+    } catch(err) {
+        next(err);
+    }
+}
+
+const getUserSharePosts = async (req, res, next) => {
+    try {
+        const user_id = req.userId;
+
+        const sharePosts = await User.findById(user_id)
+            .populate({
+                'path': 'share',
+                'populate': {
+                    'path': 'user_id',
+                    'select': '-password -email',
+                }
+            })
+        
+        res.status(200).json({
+            message: "User share posts fetched successfully",
+            metadata: sharePosts.share,
+        });
+    } catch(err) {
+        next(err);
+    }
+}
+
 // Reply to a post
 const createReply = async (req, res, next) => {
     try {
@@ -261,9 +304,11 @@ module.exports = {
     createPost,
     getPost,
     getAllPosts,
+    getUserSharePosts,
     updatePost,
     deletePost,
     likeOrUnlikePost,
+    sharePost,
     createReply,
     updateReply,
     deleteReply,

@@ -37,6 +37,11 @@ const userSchema = new Schema({
     ref: "User",
     default: [],
   },
+  share: {
+    type: [Types.ObjectId],
+    ref: "Post",
+    default: [],
+  }
 });
 
 module.exports = model("User", userSchema);
