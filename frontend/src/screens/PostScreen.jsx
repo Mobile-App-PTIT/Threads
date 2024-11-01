@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
+import Feather from 'react-native-vector-icons/Feather';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {createPostAction} from '../../redux/actions/postAction';
@@ -153,15 +154,22 @@ const PostScreen = ({navigation}) => {
                     </View>
                   ))}
               </ScrollView>
-              <View className='flex-row gap-4'>
+              <View className="flex-row gap-2 items-center">
                 <TouchableOpacity onPress={uploadPostImage}>
                   <Ionicons
                     name="images-outline"
                     size={24}
                     color={'gray'}
-                    className="pl-3"
+                    className="pl-3 pr-1"
                   />
                 </TouchableOpacity>
+                <TouchableOpacity>
+                  <Feather name="video" color={'gray'} size={20} />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <Feather name="mic" color={'gray'} size={18} />
+                </TouchableOpacity>
+                
 
                 {/* Privacy option dropdown */}
                 <View className="flex-row items-center relative">

@@ -12,6 +12,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import ImagePicker, {ImageOrVideo} from 'react-native-image-crop-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import uri from '../../redux/uri';
 import {loadUser} from '../../redux/actions/userAction';
@@ -21,30 +22,38 @@ const EditProfile = ({navigation}) => {
   const [avatar, setAvatar] = useState(user?.avatar?.url);
   const dispatch = useDispatch();
   const [userData, setUserData] = useState({
-    name: user.name,
+    name: user?.name,
     subname: user?.subname,
     bio: user?.bio,
   });
 
   const handleSubmitHandler = async () => {
-    console.log(userData)
+    const token = await AsyncStorage.getItem('token');
+    console.log(userData);
     try {
-      const response = await axios
-      .patch(`${uri}/user/${user._id}`, {
-        name: userData.name,
-        subname: userData.subname,
-        bio: userData.bio,
-      })
-      if(response.status === 200) {
-        navigation.navigate('Profile')
+      const response = await axios.patch(
+        `${uri}/user/${user._id}`,
+        {
+          name: userData.name,
+          subname: userData.subname,
+          bio: userData.bio,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        },
+      );
+      if (response.status === 200) {
+        navigation.navigate('Profile');
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-    
-      // .then(res => {
-      //   loadUser()(dispatch);
-      // });
+
+    // .then(res => {
+    //   loadUser()(dispatch);
+    // });
   };
 
   const ImageUpload = () => {
@@ -131,7 +140,7 @@ const EditProfile = ({navigation}) => {
               Subname
             </Text>
             <TextInput
-              value={userData.subname}
+              value={userData?.subname}
               onChangeText={e => setUserData({...userData, subname: e})}
               placeholder="Enter your subname..."
               placeholderTextColor={'white'}
@@ -143,7 +152,7 @@ const EditProfile = ({navigation}) => {
               Bio
             </Text>
             <TextInput
-              value={userData.bio}
+              value={userData?.bio}
               onChangeText={e => setUserData({...userData, bio: e})}
               placeholder="Enter your bio..."
               placeholderTextColor={'white'}

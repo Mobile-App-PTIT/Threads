@@ -6,12 +6,6 @@ const updateUserInfo = async (req, res, next) => {
   try {
     const { user_id } = req.params;
     const { subname, name, bio, image } = req.body;
-    if (!name || !bio) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
-    }
-
     const user = await User.findByIdAndUpdate(
       {
         _id: user_id,

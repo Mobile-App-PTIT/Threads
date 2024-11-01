@@ -7,11 +7,13 @@ import Store from './redux/store';
 import {Provider, useSelector} from 'react-redux';
 import {NavigationContainer} from '@react-navigation/native';
 import { loadUser } from './redux/actions/userAction';
+import Toast from 'react-native-toast-message'; // Import Toast
 
 function App() {
   return (
     <Provider store={Store}>
       <AppStack />
+      <Toast/>
     </Provider>
   );
 }

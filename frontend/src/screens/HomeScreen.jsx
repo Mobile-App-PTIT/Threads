@@ -9,6 +9,8 @@ import {
   Text,
   TouchableOpacity,
   Image,
+  Modal,
+  Alert,
 } from 'react-native';
 import FontAwesome5Brands from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,6 +22,7 @@ import {useNavigation} from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
+import Toast from 'react-native-toast-message';
 const loader = require('../../assets/loader.json');
 
 const HomeScreen = props => {
@@ -30,6 +33,8 @@ const HomeScreen = props => {
   const [offsetY, setOffsetY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [extraPaddingTop] = useState(new Animated.Value(0));
+  // const [isModalVisible, setModalVisible] = useState(false);
+
   const refreshingHeight = 100;
   const lottieViewRef = useRef(null);
 
@@ -45,7 +50,7 @@ const HomeScreen = props => {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${uri}/post`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -57,8 +62,23 @@ const HomeScreen = props => {
     }
   };
 
+  const fetchFollowing = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`${uri}/user/following/${user._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching following:', error);
+    }
+  };
+  
   useEffect(() => {
     fetchPosts();
+    fetchFollowing();
   }, []);
 
   const onScroll = event => {
@@ -108,7 +128,7 @@ const HomeScreen = props => {
         {},
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         },
@@ -132,6 +152,19 @@ const HomeScreen = props => {
     }
   };
 
+  const handleFollowPress = async follower_id => {
+    try {
+      await axios.patch(`${uri}/user/follow/${follower_id}`, {
+        headers: {
+          Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  };
+
   return (
     <>
       <SafeAreaView className="bg-zinc-900 flex-1">
@@ -140,7 +173,9 @@ const HomeScreen = props => {
             source={require('../../assets/images/white.png')}
             style={{width: 40, height: 40}}
           />
-          <TouchableOpacity onPress={() => props.navigation.navigate('ListMessageScreen')} className='absolute right-[20px] bottom-[5px]'>
+          <TouchableOpacity
+            onPress={() => props.navigation.navigate('ListMessageScreen')}
+            className="absolute right-[20px] bottom-[5px]">
             <FontAwesome5Brands
               name="facebook-messenger"
               color={'white'}
@@ -167,9 +202,8 @@ const HomeScreen = props => {
               </View>
               <View className="flex flex-row gap-4">
                 <Ionicons name="images-outline" color={'gray'} size={20} />
-                <Feather name="camera" color={'gray'} size={20} />
+                <Feather name="video" color={'gray'} size={20} />
                 <Feather name="mic" color={'gray'} size={18} />
-                <Feather name="hash" color={'gray'} size={20} />
               </View>
             </View>
           </View>
@@ -197,16 +231,31 @@ const HomeScreen = props => {
               <View className="relative">
                 <View className="flex-row w-full">
                   <View className="flex-row w-[85%] items-center">
-                    <TouchableOpacity>
-                      <Image
-                        source={
-                          item?.user_id?.avatar
-                            ? {uri: item.user_id.avatar}
-                            : require('../../assets/images/avatar.jpg')
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (user?._id !== item?.user_id._id) {
+                          handleFollowPress(item?.user_id);
                         }
-                        style={{width: 40, height: 40, borderRadius: 100}}
-                      />
+                      }}>
+                      <View style={{position: 'relative'}}>
+                        <Image
+                          source={
+                            item?.user_id?.avatar
+                              ? {uri: item.user_id.avatar}
+                              : require('../../assets/images/avatar.jpg')
+                          }
+                          style={{width: 40, height: 40, borderRadius: 100}}
+                        />
+
+                        {/* Black circle with a "+" icon */}
+                        {user?._id !== item?.user_id._id && (
+                          <View className="absolute bottom-0 right-0 bg-white w-4 h-4 rounded-full items-center justify-center border border-black">
+                            <Ionicons name="add" size={12} color="black" />
+                          </View>
+                        )}
+                      </View>
                     </TouchableOpacity>
+
                     <View className="pl-3 w-[70%]">
                       <Text className="text-white font-[500] text-[16px]">
                         {item?.user_id?.name || 'Unknown User'}
@@ -259,7 +308,9 @@ const HomeScreen = props => {
                     className="flex-row items-center mr-4">
                     <Ionicons
                       name={
-                        item.likes.includes(user._id) ? 'heart' : 'heart-outline'
+                        item.likes.includes(user._id)
+                          ? 'heart'
+                          : 'heart-outline'
                       }
                       size={20}
                       color={item.likes.includes(user._id) ? 'red' : 'white'}
@@ -272,9 +323,11 @@ const HomeScreen = props => {
 
                   {/* Reply Icon and Count */}
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('PostDetailScreen', {
-                      post_id: item._id,
-                    })}
+                    onPress={() =>
+                      navigation.navigate('PostDetailScreen', {
+                        post_id: item._id,
+                      })
+                    }
                     className="flex-row items-center mr-4">
                     <Ionicons
                       name="chatbubble-outline"
