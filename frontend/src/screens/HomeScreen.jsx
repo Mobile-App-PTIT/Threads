@@ -120,9 +120,9 @@ const HomeScreen = props => {
           i === index
             ? {
                 ...post,
-                like: liked
-                  ? post.like.filter(id => id !== user._id)
-                  : [...post.like, user._id],
+                likes: liked
+                  ? post.likes.filter(id => id !== user._id)
+                  : [...post.likes, user._id],
               }
             : post,
         ),
@@ -254,19 +254,19 @@ const HomeScreen = props => {
                   {/* Like Icon and Count */}
                   <TouchableOpacity
                     onPress={() =>
-                      toggleLike(item._id, item.like.includes(user._id), index)
+                      toggleLike(item._id, item.likes.includes(user._id), index)
                     }
                     className="flex-row items-center mr-4">
                     <Ionicons
                       name={
-                        item.like.includes(user._id) ? 'heart' : 'heart-outline'
+                        item.likes.includes(user._id) ? 'heart' : 'heart-outline'
                       }
                       size={20}
-                      color={item.like.includes(user._id) ? 'red' : 'white'}
+                      color={item.likes.includes(user._id) ? 'red' : 'white'}
                     />
                     <Text className="text-[16px] text-white ml-2">
-                      {item.like.length}{' '}
-                      {item.like.length > 1 ? 'Likes' : 'Like'}
+                      {item.likes.length}{' '}
+                      {item.likes.length > 1 ? 'Likes' : 'Like'}
                     </Text>
                   </TouchableOpacity>
 

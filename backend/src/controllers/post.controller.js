@@ -100,11 +100,6 @@ const updatePost = async (req, res, next) => {
     try {
         const { post_id } = req.params;
         const { title, image, status } = req.body;
-        if (!title || !image || !status) {
-            return res.status(400).json({
-                message: "All fields are required",
-            });
-        }
 
         const checkPost = await Post.findById({ _id: post_id });
         if (checkPost.user_id.toString() !== req.user._id.toString()) {
@@ -163,11 +158,11 @@ const likeOrUnlikePost = async (req, res, next) => {
             });
         }
 
-        const hasLiked = post.like.includes(user_id);
+        const hasLiked = post.likes.includes(user_id);
         if(hasLiked) {
-            await Post.updateOne({ _id: post_id }, { $pull: { like: user_id } });
+            await Post.updateOne({ _id: post_id }, { $pull: { likes: user_id } });
         } else {
-            await Post.updateOne({ _id: post_id }, { $addToSet: { like: user_id } });
+            await Post.updateOne({ _id: post_id }, { $addToSet: { likes: user_id } });
         }
 
         // Invalidate the cached post to reflect the new like/unlike status
@@ -186,11 +181,11 @@ const createReply = async (req, res, next) => {
     try {
         const user_id = req.userId;
         const { post_id } = req.params;
-        const { content, image } = req.body;
+        const { title, image } = req.body;
 
         const reply = await Reply.create({
             post_id,
-            content,
+            title,
             user_id,
             image,
         });
@@ -215,7 +210,7 @@ const createReply = async (req, res, next) => {
 const updateReply = async (req, res, next) => {
     try {
         const { reply_id } = req.params;
-        const { content, image } = req.body;
+        const { title, image } = req.body;
         const checkUser = await Reply.findById({ _id: reply_id });
 
         if (checkUser.user_id.toString() !== req.user._id.toString()) {
@@ -226,7 +221,7 @@ const updateReply = async (req, res, next) => {
 
         const reply = await Reply.findByIdAndUpdate(
             { _id: reply_id },
-            { content, image },
+            { title, image },
             { new: true }
         );
 

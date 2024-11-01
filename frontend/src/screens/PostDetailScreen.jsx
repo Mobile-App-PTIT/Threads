@@ -49,7 +49,7 @@ const PostDetailsScreen = ({ navigation, route }) => {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.post(
         `${uri}/post/${post_id}/reply`,
-        { content: newComment },
+        { title: newComment },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -64,6 +64,32 @@ const PostDetailsScreen = ({ navigation, route }) => {
       console.error('Error adding comment:', error);
     }
   };
+
+  const togglePostLike = async (postId, liked) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.patch(
+        `${uri}/post/${postId}/like`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      // Update local state for post like count and liked status
+      setPostData(prevData => ({
+        ...prevData,
+        likes: liked
+          ? prevData.likes.filter(id => id !== user._id)
+          : [...prevData.likes, user._id],
+      }));
+    } catch (error) {
+      console.error('Error toggling post like:', error);
+    }
+  };  
 
   // Function to handle like/unlike for comments
   const toggleCommentLike = async (reply_id, liked, index) => {
@@ -138,12 +164,19 @@ const PostDetailsScreen = ({ navigation, route }) => {
               resizeMode="cover"
             />
           )}
-          <View className="flex-row items-center mt-3">
-            <TouchableOpacity>
-              <Ionicons name="heart-outline" size={24} color="white" />
-            </TouchableOpacity>
-            <Text className="ml-2 text-gray-400">{postData?.likes?.length || 0} Likes</Text>
-          </View>
+         <View className="flex-row items-center mt-3">
+          <TouchableOpacity
+            onPress={() => togglePostLike(post_id, postData.likes?.includes(user._id))}
+          >
+            <Ionicons
+              name={postData.likes?.includes(user._id) ? "heart" : "heart-outline"}
+              size={24}
+              color={postData.likes?.includes(user._id) ? "red" : "white"}
+            />
+          </TouchableOpacity>
+          <Text className="ml-2 text-gray-400">{postData?.likes?.length || 0} Likes</Text>
+        </View>
+
         </View>
 
         {/* Comments Section */}

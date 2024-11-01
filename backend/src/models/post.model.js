@@ -15,7 +15,7 @@ const postSchema = new Schema({
         enum: ['public', 'private'],
         default: 'public',
     },
-    like: {
+    likes: {
         type: [Types.ObjectId],
         ref: 'User',
         default: [],
