@@ -64,7 +64,43 @@ const getRepliesOfReply = async (req, res, next) => {
     }
 }
 
+const likeOrUnlikeReplies = async (req, res, next) => {
+    try {
+        const { reply_id } = req.params;
+        const user_id = req.userId;
+
+        const checkLike = await Reply.findOne({
+            _id: reply_id,
+        })
+
+        if(checkLike.likes.includes(user_id)) {
+            await Reply.updateOne({
+                _id: reply_id,
+            }, {
+                $pull: {
+                    likes: user_id,
+                }
+            })
+        } else {
+            await Reply.updateOne({
+                _id: reply_id,
+            }, {
+                $push: {
+                    likes: user_id,
+                }
+            })
+        }
+
+        res.status(200).json({
+            message: "Reply liked/unliked successfully",
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     createReplyToReply,
     getRepliesOfReply,
+    likeOrUnlikeReplies,
 }

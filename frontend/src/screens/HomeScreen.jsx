@@ -45,7 +45,7 @@ const HomeScreen = props => {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${uri}/post`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -108,7 +108,7 @@ const HomeScreen = props => {
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         },

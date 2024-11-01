@@ -16,8 +16,8 @@ router.delete('/:post_id', postController.deletePost);
 router.patch('/:post_id/like', postController.likeOrUnlikePost);
 
 //Reply to a post
-router.post('/:post_id/reply', postController.createReply);
-router.patch('/:post_id/reply/:reply_id', postController.updateReply);
-router.delete('/:post_id/reply/:reply_id', postController.deleteReply);
+router.post('/:post_id/reply', isAuth, postController.createReply);
+router.patch('/:post_id/reply/:reply_id', isAuth, postController.updateReply);
+router.delete('/:post_id/reply/:reply_id', isAuth, postController.deleteReply);
 
 module.exports = router;

@@ -27,7 +27,7 @@ const AppStack = () => {
         <Text className='text-black'>Loading</Text>
       ) : (
         <>
-          {isLogin ? ( // sau thay = isAuthenticated
+          {isAuthenticated ? ( // sau thay = isAuthenticated
             <NavigationContainer>
               <Main/>
             </NavigationContainer>

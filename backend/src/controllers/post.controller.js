@@ -10,8 +10,6 @@ const createPost = async (req, res, next) => {
         const { title } = req.body;
         const imageFiles = req.files;
 
-        console.log(title, imageFiles);
-        
         const uploadedImages = await Promise.all(
             imageFiles.map(async (file) => {
               const imageBuffer = file.buffer.toString('base64');
@@ -19,11 +17,15 @@ const createPost = async (req, res, next) => {
               return await uploadImage(imageData);
             })
         );
+        
         const newPost = await Post.create({
             title,
             image: uploadedImages,
             user_id,
         });
+
+        // Set new post in Redis cache
+        await redisClient.set(`post:${newPost._id}`, JSON.stringify(newPost), 'EX', 60);
 
         res.status(201).json({
             message: "Post created successfully",
@@ -51,13 +53,14 @@ const getPost = async (req, res, next) => {
                 path: 'replies',
                 populate: {
                     path: 'user_id',
+                    select: '-password -gmail',
                 }
             })
             .populate({
                 path: 'user_id',
                 select: '-password -email',
             });
-        console.log(post);
+        
         if (!post) {
             return res.status(404).json({
                 message: "Post not found",
@@ -93,7 +96,6 @@ const getAllPosts = async (req, res, next) => {
     }
 };
 
-
 const updatePost = async (req, res, next) => {
     try {
         const { post_id } = req.params;
@@ -104,28 +106,21 @@ const updatePost = async (req, res, next) => {
             });
         }
 
-        const checkPost = await Post.findById({
-            _id: post_id,
-        });
-        if(checkPost.user_id.toString() !== req.user._id.toString()) {
+        const checkPost = await Post.findById({ _id: post_id });
+        if (checkPost.user_id.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 message: "You are not authorized to update this post",
             });
         }
 
         const post = await Post.findByIdAndUpdate(
-            {
-                _id: post_id,
-            },
-            {
-                title,
-                image,
-                status,
-            },
+            { _id: post_id },
+            { title, image, status },
             { new: true }
         );
 
-        await redisClient.set(`post:${post_id}`, JSON.stringify(post));
+        // Update the cache with the new post data
+        await redisClient.set(`post:${post_id}`, JSON.stringify(post), 'EX', 60);
 
         res.status(200).json({
             message: "Post updated successfully",
@@ -139,15 +134,12 @@ const updatePost = async (req, res, next) => {
 const deletePost = async (req, res, next) => {
     try {
         const { post_id } = req.params;
-        const post = await Post.findByIdAndDelete({
-            _id: post_id,
-        });
+        const post = await Post.findByIdAndDelete({ _id: post_id });
 
-        await Reply.deleteMany({
-            post_id,
-        });
-
+        await Reply.deleteMany({ post_id });
         await deleteImage(post.image);
+
+        // Delete the post from Redis cache
         await redisClient.del(`post:${post_id}`);
 
         res.status(200).json({
@@ -164,9 +156,7 @@ const likeOrUnlikePost = async (req, res, next) => {
         const { post_id } = req.params;
         const user_id = req.userId;
 
-        const post = await Post.findById({
-            _id: post_id,
-        });
+        const post = await Post.findById({ _id: post_id });
         if(!post) {
             return res.status(404).json({
                 message: "Post not found",
@@ -175,25 +165,16 @@ const likeOrUnlikePost = async (req, res, next) => {
 
         const hasLiked = post.like.includes(user_id);
         if(hasLiked) {
-            await Post.updateOne({
-                _id: post_id,
-            }, {
-                $pull: {
-                    like: user_id,
-                }
-            })
+            await Post.updateOne({ _id: post_id }, { $pull: { like: user_id } });
         } else {
-            await Post.updateOne({
-                _id: post_id,
-            }, {
-                $addToSet: {
-                    like: user_id,
-                }
-            })
+            await Post.updateOne({ _id: post_id }, { $addToSet: { like: user_id } });
         }
 
+        // Invalidate the cached post to reflect the new like/unlike status
+        await redisClient.del(`post:${post_id}`);
+
         res.status(200).json({
-            message: "Post liked successfully",
+            message: "Post liked/unliked successfully",
         });
     } catch (err) {
         next(err);
@@ -203,32 +184,24 @@ const likeOrUnlikePost = async (req, res, next) => {
 // Reply to a post
 const createReply = async (req, res, next) => {
     try {
-        const user_id  = req.user._id;
+        const user_id = req.userId;
         const { post_id } = req.params;
-        const { title, image } = req.body;
-        if (!reply) {
-            return res.status(400).json({
-                message: "Reply field is required",
-            });
-        }
+        const { content, image } = req.body;
 
         const reply = await Reply.create({
             post_id,
-            title: title,
+            content,
             user_id,
             image,
-        })
+        });
 
         await Post.findByIdAndUpdate(
-            {
-                _id: post_id,
-            },
-            {
-                $push: {
-                    replies: reply._id,
-                }
-            }
-        )
+            { _id: post_id },
+            { $push: { replies: reply._id } }
+        );
+
+        // Invalidate cache as new reply is added
+        await redisClient.del(`post:${post_id}`);
 
         res.status(201).json({
             message: "Reply created successfully",
@@ -242,10 +215,8 @@ const createReply = async (req, res, next) => {
 const updateReply = async (req, res, next) => {
     try {
         const { reply_id } = req.params;
-        const { title, image } = req.body;
-        const checkUser = await Reply.findById({
-            _id: reply_id,
-        });
+        const { content, image } = req.body;
+        const checkUser = await Reply.findById({ _id: reply_id });
 
         if (checkUser.user_id.toString() !== req.user._id.toString()) {
             return res.status(403).json({
@@ -254,13 +225,8 @@ const updateReply = async (req, res, next) => {
         }
 
         const reply = await Reply.findByIdAndUpdate(
-            {
-                _id: reply_id,
-            },
-            {
-                title,
-                image,
-            },
+            { _id: reply_id },
+            { content, image },
             { new: true }
         );
 
@@ -276,22 +242,17 @@ const updateReply = async (req, res, next) => {
 const deleteReply = async (req, res, next) => {
     try {
         const { reply_id } = req.params;
-        const reply = await Reply.findByIdAndDelete({
-            _id: reply_id,
-        });
+        const reply = await Reply.findByIdAndDelete({ _id: reply_id });
 
         await Post.findByIdAndUpdate(
-            {
-                _id: reply.post_id,
-            },
-            {
-                $pull: {
-                    replies: reply_id,
-                }
-            }
+            { _id: reply.post_id },
+            { $pull: { replies: reply_id } }
         );
 
         await deleteImage(reply.image);
+
+        // Invalidate cache for the post associated with the deleted reply
+        await redisClient.del(`post:${reply.post_id}`);
 
         res.status(200).json({
             message: "Reply deleted successfully",

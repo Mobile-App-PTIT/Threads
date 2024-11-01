@@ -1,5 +1,3 @@
-"use strict";
-
 import {
   View,
   Text,
@@ -12,14 +10,15 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import uri from '../../redux/uri';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import getTimeDuration from '../common/TimeGenerator';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const PostDetailsScreen = ({navigation, route}) => {
+const PostDetailsScreen = ({ navigation, route }) => {
   const post_id = route.params.post_id;
-  const token = useSelector(state => state.user.token);
+  const { user } = useSelector(state => state.user);
   const [postData, setPostData] = useState({});
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -27,9 +26,10 @@ const PostDetailsScreen = ({navigation, route}) => {
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
+        const token = await AsyncStorage.getItem('token');
         const postResponse = await axios.get(`${uri}/post/${post_id}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
@@ -46,21 +46,55 @@ const PostDetailsScreen = ({navigation, route}) => {
     if (!newComment.trim()) return;
 
     try {
+      const token = await AsyncStorage.getItem('token');
       const response = await axios.post(
         `${uri}/post/${post_id}/reply`,
         { content: newComment },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }
       );
 
       setComments([response.data.metadata, ...comments]);
-      setNewComment(''); 
+      setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+    }
+  };
+
+  // Function to handle like/unlike for comments
+  const toggleCommentLike = async (reply_id, liked, index) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.patch(
+        `${uri}/reply/${reply_id}/like`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      // Update local state for like count and liked status for the specific comment
+      setComments(prevComments =>
+        prevComments.map((comment, i) =>
+          i === index
+            ? {
+                ...comment,
+                likes: liked
+                  ? comment.likes.filter(id => id !== user._id)
+                  : [...comment.likes, user._id],
+              }
+            : comment,
+        ),
+      );
+    } catch (error) {
+      console.error('Error liking/unliking comment:', error);
     }
   };
 
@@ -114,7 +148,7 @@ const PostDetailsScreen = ({navigation, route}) => {
 
         {/* Comments Section */}
         <View className="p-4">
-          <Text className="text-lg text-white font-bold">Comments</Text>
+          <Text className="text-lg text-white font-bold">Comments ({comments.length})</Text>
           {comments.length > 0 ? (
             comments.map((comment, index) => (
               <View key={index} className="mt-4 p-3 border-b border-gray-700">
@@ -132,12 +166,26 @@ const PostDetailsScreen = ({navigation, route}) => {
                     <Text className="text-gray-500 text-xs">{getTimeDuration(comment?.createdAt)}</Text>
                   </View>
                 </View>
-                <Text className="mt-2 text-gray-400">{comment?.content || 'No Content'}</Text>
+                <Text className="mt-2 text-gray-400">{comment?.title || 'No Content'}</Text>
                 <View className="flex-row items-center mt-2">
-                  <TouchableOpacity>
-                    <Ionicons name="heart" size={20} color="red" />
+                  <TouchableOpacity
+                    onPress={() =>
+                      toggleCommentLike(comment._id, comment.likes.includes(user._id), index)
+                    }
+                    className="flex-row items-center mr-4"
+                  >
+                    <Ionicons
+                      name={comment.likes.includes(user._id) ? 'heart' : 'heart-outline'}
+                      size={20}
+                      color={comment.likes.includes(user._id) ? 'red' : 'white'}
+                    />
+                    <Text className="ml-2 text-gray-400">{comment.likes.length || 0} Likes</Text>
                   </TouchableOpacity>
-                  <Text className="ml-2 text-gray-400">{comment?.likes?.length || 0} Likes</Text>
+
+                  <TouchableOpacity className="ml-1">
+                    <Ionicons name="chatbubble-outline" size={20} color="white" />
+                  </TouchableOpacity>
+                  <Text className="ml-2 text-gray-400">{comment?.replies?.length || 0} Replies</Text>
                 </View>
               </View>
             ))
