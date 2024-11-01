@@ -114,6 +114,8 @@ const login = async (req, res, next) => {
         _id: user._id,
         name: user.name,
         avatar: user.avatar,
+        bio: user.bio,
+        subname: user.subname,
       }
     });
   } catch (err) {
