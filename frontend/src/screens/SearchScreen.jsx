@@ -11,25 +11,33 @@ import {
 } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
-import uri  from '../../redux/uri'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import uri from '../../redux/uri';
+import { useSelector } from 'react-redux';
 
 const SearchScreen = () => {
-  const token = AsyncStorage.getItem('token');
-  const [data, setData] = useState([]); 
-  const [search, setSearch] = useState(''); 
-  const [isLoading, setIsLoading] = useState(false); 
+  const { user } = useSelector((state) => state.user);
+  const [data, setData] = useState([]);
+  const [search, setSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch users from API
   const fetchUsers = async () => {
     try {
-      setIsLoading(true); 
+      setIsLoading(true);
+      const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${uri}/user`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setData(response.data.metadata); 
+
+      // Check if each user is in the current user's following list
+      const usersWithFollowStatus = response.data.metadata.map((item) => ({
+        ...item,
+        following: user.following.includes(item._id),
+      }));
+
+      setData(usersWithFollowStatus);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -38,7 +46,6 @@ const SearchScreen = () => {
     }
   };
 
-  // Call fetchUsers when the screen loads
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -51,7 +58,28 @@ const SearchScreen = () => {
       );
       setData(filteredUsers);
     } else {
-      fetchUsers(); // Reset to original users if search is cleared
+      fetchUsers();
+    }
+  };
+
+  const handleFollow = async (userId, index) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      await axios.patch(`${uri}/user/follow/${userId}`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Update the 'followed' status of the user
+      setData((prevData) =>
+        prevData.map((user, i) =>
+          i === index ? { ...user, following: !user.following } : user
+        )
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to follow/unfollow user');
+      console.error('Error following/unfollowing user:', error);
     }
   };
 
@@ -78,11 +106,11 @@ const SearchScreen = () => {
         <FlatList
           className="mt-5"
           data={data}
-          keyExtractor={(item) => item._id.toString()} 
+          keyExtractor={(item) => item._id.toString()}
           showsVerticalScrollIndicator={false}
           refreshing={isLoading}
-          onRefresh={fetchUsers} 
-          renderItem={({ item }) => (
+          onRefresh={fetchUsers}
+          renderItem={({ item, index }) => (
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate('UserProfile', {
@@ -96,7 +124,7 @@ const SearchScreen = () => {
                   source={
                     item?.avatar
                       ? { uri: item.avatar }
-                      : require('../../assets/images/avatar.jpg') 
+                      : require('../../assets/images/avatar.jpg')
                   }
                   style={{ width: 40, height: 40, borderRadius: 100 }}
                 />
@@ -130,11 +158,14 @@ const SearchScreen = () => {
                     </Text>
                   </View>
                   <View>
-                    <TouchableOpacity
-                      className="rounded-[8px] w-[100px] flex-row justify-center items-center h-[35px] border border-slate-700"
-                    >
-                      <Text className="text-white">Follows</Text>
-                    </TouchableOpacity>
+                    {item.following ? null : (
+                      <TouchableOpacity
+                        onPress={() => handleFollow(item._id, index)}
+                        className="rounded-[8px] w-[100px] flex-row justify-center items-center h-[35px] border border-slate-700"
+                      >
+                        <Text className="text-white">Follows</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               </View>

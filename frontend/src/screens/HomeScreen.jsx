@@ -15,26 +15,28 @@ import {
 import FontAwesome5Brands from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import React, {useEffect, useRef, useState} from 'react';
-import {SafeAreaView} from 'react-native';
-import {useSelector} from 'react-redux';
-import {useNavigation} from '@react-navigation/native';
+import React, { useEffect, useRef, useState } from 'react';
+import { SafeAreaView } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
 import Toast from 'react-native-toast-message';
+import SharePopup from '../components/SharePopup';
 const loader = require('../../assets/loader.json');
 
-const HomeScreen = props => {
+const HomeScreen = (props) => {
   const navigation = useNavigation();
-  const {user} = useSelector(state => state.user);
+  const { user } = useSelector((state) => state.user);
   const [posts, setPosts] = useState([]);
   const [following, setFollowing] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [offsetY, setOffsetY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [extraPaddingTop] = useState(new Animated.Value(0));
-  // const [isModalVisible, setModalVisible] = useState(false);
+  const [isSharePopupVisible, setSharePopupVisible] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
 
   const refreshingHeight = 100;
   const lottieViewRef = useRef(null);
@@ -74,10 +76,10 @@ const HomeScreen = props => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
       console.log(response.data);
-      setFollowing(response.data.following.map(f => f._id));
+      setFollowing(response.data.following.map((f) => f._id));
     } catch (error) {
       console.error('Error fetching following:', error);
     }
@@ -88,17 +90,17 @@ const HomeScreen = props => {
     fetchFollowing();
   }, []);
 
-  const onScroll = event => {
-    const {nativeEvent} = event;
-    const {contentOffset} = nativeEvent;
-    const {y} = contentOffset;
+  const onScroll = (event) => {
+    const { nativeEvent } = event;
+    const { contentOffset } = nativeEvent;
+    const { y } = contentOffset;
     setOffsetY(y);
   };
 
-  const onScrollEndDrag = event => {
-    const {nativeEvent} = event;
-    const {contentOffset} = nativeEvent;
-    const {y} = contentOffset;
+  const onScrollEndDrag = (event) => {
+    const { nativeEvent } = event;
+    const { contentOffset } = nativeEvent;
+    const { y } = contentOffset;
     setOffsetY(y);
   };
 
@@ -107,6 +109,11 @@ const HomeScreen = props => {
     await fetchPosts();
     await fetchFollowing();
     setIsRefreshing(false);
+  };
+
+  const onSharePress = (post_id) => {
+    setSelectedPostId(post_id);
+    setSharePopupVisible(true);
   };
 
   useEffect(() => {
@@ -127,7 +134,6 @@ const HomeScreen = props => {
     }
   }, [isRefreshing]);
 
-  // Function to handle like/unlike API call
   const toggleLike = async (postId, liked, index) => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -139,28 +145,27 @@ const HomeScreen = props => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
 
-      // Update local state for like count and liked status
-      setPosts(prevPosts =>
+      setPosts((prevPosts) =>
         prevPosts.map((post, i) =>
           i === index
             ? {
                 ...post,
                 likes: liked
-                  ? post.likes.filter(id => id !== user._id)
+                  ? post.likes.filter((id) => id !== user._id)
                   : [...post.likes, user._id],
               }
-            : post,
-        ),
+            : post
+        )
       );
     } catch (error) {
       console.error('Error liking/unliking post:', error);
     }
   };
 
-  const handleFollowPress = async id => {
+  const handleFollowPress = async (id) => {
     try {
       console.log('Following user:', id);
       await axios.patch(
@@ -171,13 +176,13 @@ const HomeScreen = props => {
             Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
       const isFollowing = following.includes(id);
-      setFollowing(prevFollowing =>
+      setFollowing((prevFollowing) =>
         isFollowing
-          ? prevFollowing.filter(userId => userId !== id)
-          : [...prevFollowing, id],
+          ? prevFollowing.filter((userId) => userId !== id)
+          : [...prevFollowing, id]
       );
     } catch (error) {
       console.error('Error following user:', error);
@@ -190,11 +195,12 @@ const HomeScreen = props => {
         <View className="flex flex-row justify-center items-center pt-5">
           <Image
             source={require('../../assets/images/white.png')}
-            style={{width: 40, height: 40}}
+            style={{ width: 40, height: 40 }}
           />
           <TouchableOpacity
             onPress={() => props.navigation.navigate('ListMessageScreen')}
-            className="absolute right-[20px] bottom-[5px]">
+            className="absolute right-[20px] bottom-[5px]"
+          >
             <FontAwesome5Brands
               name="facebook-messenger"
               color={'white'}
@@ -204,15 +210,16 @@ const HomeScreen = props => {
         </View>
         <TouchableOpacity
           onPress={() => props.navigation.navigate('Post')}
-          className="p-[15px] border-b border-gray-700">
+          className="p-[15px] border-b border-gray-700"
+        >
           <View className="flex flex-row gap-4">
             <Image
               source={
                 user?.avatar
-                  ? {uri: user?.avatar}
+                  ? { uri: user?.avatar }
                   : require('../../assets/images/avatar.jpg')
               }
-              style={{width: 40, height: 40, borderRadius: 100}}
+              style={{ width: 40, height: 40, borderRadius: 100 }}
             />
             <View className="flex flex-col gap-6">
               <View>
@@ -241,11 +248,10 @@ const HomeScreen = props => {
           source={loader}
           progress={progress}
         />
-        {/* Display posts */}
         <FlatList
           data={posts}
           showsVerticalScrollIndicator={false}
-          renderItem={({item, index}) => (
+          renderItem={({ item, index }) => (
             <View className="p-[15px] border-b border-gray-700">
               <View className="relative">
                 <View className="flex-row w-full">
@@ -255,32 +261,16 @@ const HomeScreen = props => {
                         if (user?._id !== item?.user_id?._id) {
                           handleFollowPress(item?.user_id?._id);
                         }
-                      }}>
-                      <View style={{position: 'relative'}}>
-                        <Image
-                          source={
-                            item?.user_id?.avatar
-                              ? {uri: item.user_id.avatar}
-                              : require('../../assets/images/avatar.jpg')
-                          }
-                          style={{width: 40, height: 40, borderRadius: 100}}
-                        />
-
-                        {/* Black circle with a "+" icon */}
-                        {user?._id !== item?.user_id._id && (
-                          <View className="absolute bottom-0 right-0 bg-white w-4 h-4 rounded-full items-center justify-center border border-black">
-                            {following.includes(item?.user_id._id) ? (
-                              <Ionicons
-                                name="checkmark"
-                                size={12}
-                                color="black"
-                              />
-                            ) : (
-                              <Ionicons name="add" size={12} color="black" />
-                            )}
-                          </View>
-                        )}
-                      </View>
+                      }}
+                    >
+                      <Image
+                        source={
+                          item?.user_id?.avatar
+                            ? { uri: item.user_id.avatar }
+                            : require('../../assets/images/avatar.jpg')
+                        }
+                        style={{ width: 40, height: 40, borderRadius: 100 }}
+                      />
                     </TouchableOpacity>
 
                     <View className="pl-3 w-[70%]">
@@ -298,25 +288,19 @@ const HomeScreen = props => {
                     </View>
                   </View>
                 </View>
-                {/* Rendering Images */}
+
                 {Array.isArray(item?.image) && item.image.length > 0 ? (
                   <View className="ml-[50px] my-3">
                     {item.image.map((img, idx) => (
                       <Image
                         key={idx}
-                        source={{uri: img}}
+                        source={{ uri: img }}
                         style={{
                           aspectRatio: 1,
                           borderRadius: 10,
                           width: 320,
                           height: 320,
                         }}
-                        onError={error =>
-                          console.error(
-                            'Error loading image:',
-                            error.nativeEvent.error,
-                          )
-                        }
                         resizeMode="cover"
                       />
                     ))}
@@ -326,13 +310,14 @@ const HomeScreen = props => {
                     No Image Available
                   </Text>
                 )}
+
                 <View className="pl-[50px] pt-4 flex-row">
-                  {/* Like Icon and Count */}
                   <TouchableOpacity
                     onPress={() =>
                       toggleLike(item._id, item.likes.includes(user._id), index)
                     }
-                    className="flex-row items-center mr-4">
+                    className="flex-row items-center mr-4"
+                  >
                     <Ionicons
                       name={
                         item.likes.includes(user._id)
@@ -348,32 +333,30 @@ const HomeScreen = props => {
                     </Text>
                   </TouchableOpacity>
 
-                  {/* Reply Icon and Count */}
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('PostDetailScreen', {
                         post_id: item._id,
                       })
                     }
-                    className="flex-row items-center mr-4">
+                    className="flex-row items-center mr-4"
+                  >
                     <Ionicons
                       name="chatbubble-outline"
                       size={20}
                       color="white"
                     />
                     <Text className="text-[16px] text-white ml-2">
-                      {item?.replies?.length !== 0
+                      {item?.replies?.length
                         ? `${item?.replies?.length} Replies`
                         : '0 Replies'}
                     </Text>
                   </TouchableOpacity>
 
-                  {/* Share Button */}
                   <TouchableOpacity
-                    onPress={() => {
-                      console.log('Share post', item._id);
-                    }}
-                    className="flex-row items-center">
+                    onPress={() => onSharePress(item._id)}
+                    className="flex-row items-center"
+                  >
                     <Feather name="share-2" size={20} color="white" />
                     <Text className="text-[16px] text-white ml-2">Share</Text>
                   </TouchableOpacity>
@@ -400,6 +383,11 @@ const HomeScreen = props => {
           }
         />
       </SafeAreaView>
+      <SharePopup
+        isVisible={isSharePopupVisible}
+        onClose={() => setSharePopupVisible(false)}
+        post_id={selectedPostId}
+      />
     </>
   );
 };

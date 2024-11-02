@@ -116,6 +116,8 @@ const login = async (req, res, next) => {
         avatar: user.avatar,
         bio: user.bio,
         subname: user.subname,
+        followers: user.followers,
+        following: user.following,
       }
     });
   } catch (err) {
