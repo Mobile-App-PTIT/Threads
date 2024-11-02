@@ -105,8 +105,14 @@ const getUserReplied = async (req, res, next) => {
     const replies = await Reply.find({
       user_id,
     }).populate({
-      'path': 'post_id',
-    }).lean();
+      'path': 'replies',
+      'populate': {
+        'path': 'user_id',
+        'select': '_id name avatar',
+      },
+    }).sort({ createdAt: -1 }).lean();
+
+    console.log(replies);
 
     res.status(200).json({
       message: "User replies fetched successfully",

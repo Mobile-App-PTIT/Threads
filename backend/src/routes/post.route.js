@@ -17,7 +17,7 @@ router.patch('/:post_id/like', postController.likeOrUnlikePost);
 
 //Share a post
 router.patch('/:post_id/share', isAuth, postController.sharePost);
-router.get('/:post_id/share', postController.getUserSharePosts);
+router.get('/share/:user_id', postController.getUserSharePosts);
 
 //Reply to a post
 router.post('/:post_id/reply', isAuth, postController.createReply);

@@ -199,11 +199,12 @@ const sharePost = async (req, res, next) => {
 
 const getUserSharePosts = async (req, res, next) => {
     try {
-        const user_id = req.userId;
+        const { user_id } = req.params;
 
         const sharePosts = await User.findById(user_id)
             .populate({
                 'path': 'share',
+                'select': '-password -email',
                 'populate': {
                     'path': 'user_id',
                     'select': '-password -email',
