@@ -173,7 +173,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <FlatList
-      data={activeTab === 'Reposts' ? sharedPosts : []} // Only load data when active tab is "Reposts"
+      data={activeTab === 'Reposts' ? sharedPosts : []} 
       ListHeaderComponent={renderHeader}
       keyExtractor={item => item._id.toString()}
       renderItem={({ item }) => (
@@ -184,7 +184,7 @@ const ProfileScreen = ({ navigation }) => {
               source={{
                 uri:
                   item.user_id?.avatar || 'https://example.com/default-avatar.jpg',
-              }} // Default avatar if none
+              }} 
               style={{ width: 40, height: 40, borderRadius: 20 }}
             />
             <View className="ml-3">
@@ -214,7 +214,7 @@ const ProfileScreen = ({ navigation }) => {
       ListEmptyComponent={
         <Text className="text-white mt-5 mx-5">Nothing here</Text>
       }
-      style={{ backgroundColor: '#1c1c1e' }} // Set background color for the FlatList
+      style={{ backgroundColor: '#1c1c1e' }} 
       contentContainerStyle={{ paddingBottom: 20, backgroundColor: '#1c1c1e' }}
     />
   );

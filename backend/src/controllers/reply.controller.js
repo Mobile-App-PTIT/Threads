@@ -4,28 +4,29 @@ const redisClient = require('../configs/redis');
 
 const createReplyToReply = async (req, res, next) => {
     try {
-        const user_id = req.user._id;
-        const { post_id } = req.params;
-        const { title, image} = req.body;
+        const user_id = req.userId;
+        const { reply_id } = req.params;
+        const { title, image, post_id} = req.body;
 
+        let reply;
         if(image) {
             const cloudImage = await uploadImage(image, 'replies');
-            const reply = await Reply.create({
+            reply = await Reply.create({
                 title,
                 image: cloudImage,
                 post_id,
                 user_id,
-            }, {
-                $push: {
-                    replies: reply._id,
-                }
             });
+        } else {
+            reply = await Reply.create({
+                title,
+                post_id,
+                user_id,
+            })
         }
 
-        const reply = await Reply.create({
-            title,
-            post_id,
-            user_id,
+        await Reply.updateOne({
+            _id: reply_id,
         }, {
             $push: {
                 replies: reply._id,
@@ -45,13 +46,17 @@ const getRepliesOfReply = async (req, res, next) => {
     try {
         const { reply_id } = req.params;
 
-        const replies = await Reply.find({
-            replies: reply_id,
+        const replies = await Reply.findById({
+            _id: reply_id,
         }).populate({
             'path': 'replies',            
-            'select': 'title image likes',
+            'populate': {
+                'path': 'user_id',
+                'select': '-password -gmail',
+            }
         }).populate({
             'path': 'user_id',
+            'select': '-password -gmail',
         }).lean();
 
         await redisClient.set(`reply:${reply_id}`, JSON.stringify(replies));

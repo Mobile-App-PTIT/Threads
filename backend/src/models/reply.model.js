@@ -20,7 +20,7 @@ const replySchema = new Schema({
         ref: 'Reply',
         default: [],
     },
-    createAt: {
+    createdAt: {
         type: Date,
         default: Date.now,
     },

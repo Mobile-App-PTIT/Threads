@@ -26,7 +26,7 @@ const createPost = async (req, res, next) => {
         });
 
         // Set new post in Redis cache
-        await redisClient.set(`post:${newPost._id}`, JSON.stringify(newPost), 'EX', 60);
+        await redisClient.set(`post:${newPost._id}`, JSON.stringify(newPost), { EX: 60 });
 
         res.status(201).json({
             message: "Post created successfully",
@@ -68,7 +68,7 @@ const getPost = async (req, res, next) => {
             });
         }
 
-        await redisClient.set(`post:${post_id}`, JSON.stringify(post), 'EX', 60);
+        await redisClient.set(`post:${post_id}`, JSON.stringify(post), { EX: 60 });
 
         res.status(200).json({
             message: "Post fetched successfully",
@@ -116,7 +116,7 @@ const updatePost = async (req, res, next) => {
         );
 
         // Update the cache with the new post data
-        await redisClient.set(`post:${post_id}`, JSON.stringify(post), 'EX', 60);
+        await redisClient.set(`post:${post_id}`, JSON.stringify(post), { EX: 60 });
 
         res.status(200).json({
             message: "Post updated successfully",

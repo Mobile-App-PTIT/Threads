@@ -89,9 +89,8 @@ const PostDetailsScreen = ({ navigation, route }) => {
     } catch (error) {
       console.error('Error toggling post like:', error);
     }
-  };  
+  };
 
-  // Function to handle like/unlike for comments
   const toggleCommentLike = async (reply_id, liked, index) => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -106,7 +105,6 @@ const PostDetailsScreen = ({ navigation, route }) => {
         },
       );
 
-      // Update local state for like count and liked status for the specific comment
       setComments(prevComments =>
         prevComments.map((comment, i) =>
           i === index
@@ -140,7 +138,6 @@ const PostDetailsScreen = ({ navigation, route }) => {
           <Text className="text-white text-lg font-bold">Post Details</Text>
         </View>
 
-        {/* Display the main post at the top */}
         <View className="p-4 border-b border-gray-700">
           <View className="flex-row items-center">
             <Image
@@ -164,22 +161,21 @@ const PostDetailsScreen = ({ navigation, route }) => {
               resizeMode="cover"
             />
           )}
-         <View className="flex-row items-center mt-3">
-          <TouchableOpacity
-            onPress={() => togglePostLike(post_id, postData.likes?.includes(user._id))}
-          >
-            <Ionicons
-              name={postData.likes?.includes(user._id) ? "heart" : "heart-outline"}
-              size={24}
-              color={postData.likes?.includes(user._id) ? "red" : "white"}
-            />
-          </TouchableOpacity>
-          <Text className="ml-2 text-gray-400">{postData?.likes?.length || 0} Likes</Text>
+          <View className="flex-row items-center mt-3">
+            <TouchableOpacity
+              onPress={() => togglePostLike(post_id, postData.likes?.includes(user._id))}
+            >
+              <Ionicons
+                name={postData.likes?.includes(user._id) ? "heart" : "heart-outline"}
+                size={24}
+                color={postData.likes?.includes(user._id) ? "red" : "white"}
+              />
+            </TouchableOpacity>
+            <Text className="ml-2 text-gray-400">{postData?.likes?.length || 0} Likes</Text>
+          </View>
         </View>
 
-        </View>
-
-        {/* Comments Section */}
+        {/* Comments Section*/}
         <View className="p-4">
           <Text className="text-lg text-white font-bold">Comments ({comments.length})</Text>
           {comments.length > 0 ? (
@@ -202,9 +198,7 @@ const PostDetailsScreen = ({ navigation, route }) => {
                 <Text className="mt-2 text-gray-400">{comment?.title || 'No Content'}</Text>
                 <View className="flex-row items-center mt-2">
                   <TouchableOpacity
-                    onPress={() =>
-                      toggleCommentLike(comment._id, comment.likes.includes(user._id), index)
-                    }
+                    onPress={() => toggleCommentLike(comment._id, comment.likes.includes(user._id), index)}
                     className="flex-row items-center mr-4"
                   >
                     <Ionicons
@@ -214,8 +208,10 @@ const PostDetailsScreen = ({ navigation, route }) => {
                     />
                     <Text className="ml-2 text-gray-400">{comment.likes.length || 0} Likes</Text>
                   </TouchableOpacity>
-
-                  <TouchableOpacity className="ml-1">
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('ReplyDetailsScreen', { reply_id: comment._id })}
+                    className="ml-1"
+                  >
                     <Ionicons name="chatbubble-outline" size={20} color="white" />
                   </TouchableOpacity>
                   <Text className="ml-2 text-gray-400">{comment?.replies?.length || 0} Replies</Text>
@@ -228,7 +224,6 @@ const PostDetailsScreen = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      {/* Comment Input Section */}
       <KeyboardAvoidingView behavior="padding">
         <View className="p-4 bg-zinc-800 border-t border-gray-700 flex-row items-center">
           <TextInput
