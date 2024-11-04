@@ -12,6 +12,8 @@ import {
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather'
+import ImagePicker from 'react-native-image-crop-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import uri from '../../redux/uri';
 import getTimeDuration from '../common/TimeGenerator';
@@ -21,6 +23,8 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
   const { user } = useSelector(state => state.user);
   const [replies, setReplies] = useState([]);
   const [comment, setComment] = useState(null);
+  const [isInputFocused, setIsInputFocused] = useState(false); 
+  const [image, setImage] = useState([])
   const [newReply, setNewReply] = useState('');
 
   useEffect(() => {
@@ -97,6 +101,28 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
     } catch (error) {
       console.error('Error toggling like:', error);
     }
+  };
+
+  const uploadPostImage = () => {
+    ImagePicker.openPicker({
+      width: 300,
+      height: 300,
+      cropping: true,
+      compressImageQuality: 0.8,
+      includeBase64: true,
+      multiple: true,
+    }).then(images => {
+      if (images.length > 0) {
+        const selectedImages = images.map(
+          image => 'data:image/jpeg;base64,' + image.data,
+        );
+        setImage([...image, ...selectedImages]);
+      }
+    });
+  };
+
+  const removeImage = (index) => {
+    setImage(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
   return (
@@ -198,15 +224,56 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
+      {image.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="flex-row p-2 h-0 bg-zinc-800 border-t border-gray-700">
+          {image.map((image, index) => (
+            <View key={index} className="mr-2 relative">
+              <Image
+                source={{ uri: image }}
+                style={{ width: 100, height: 100, borderRadius: 8 }}
+              />
+              <TouchableOpacity
+                onPress={() => removeImage(index)}
+                style={{
+                  position: 'absolute',
+                  top: -5,
+                  right: -5,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  borderRadius: 10,
+                  padding: 2,
+                }}>
+                <Ionicons name="close" size={16} color="white" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+
       {/* Reply Input Section */}
       <KeyboardAvoidingView behavior="padding">
-        <View className="p-4 bg-zinc-800 border-t border-gray-700 flex-row items-center">
+        <View className="p-4 bg-zinc-800 border-t border-gray-700 flex-row items-center gap-2">
+        {!isInputFocused && (
+            <>
+              <TouchableOpacity>
+                <Feather name="video" color={'white'} size={21} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Feather name="mic" color={'white'} size={21} />
+              </TouchableOpacity>
+              <TouchableOpacity className="mr-2" onPress={uploadPostImage}>
+                <Ionicons name="images-outline" size={22} color="white" />
+              </TouchableOpacity>
+            </>
+          )}
           <TextInput
             value={newReply}
             onChangeText={setNewReply}
             placeholder="Write a reply..."
             placeholderTextColor="#999"
-            className="flex-1 bg-zinc-700 text-white p-3 rounded-lg"
+            className="flex-1 bg-zinc-700 text-white p-2 rounded-lg"
           />
           <TouchableOpacity onPress={handleAddReply} className="ml-3">
             <Ionicons name="send" size={24} color="white" />
