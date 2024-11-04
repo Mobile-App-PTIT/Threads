@@ -1,7 +1,7 @@
 const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
-const { uploadImage, deleteImage } = require('../configs/cloudinary');
+const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
 // Post 
@@ -9,19 +9,31 @@ const createPost = async (req, res, next) => {
     try {
         const user_id = req.userId;
         const { title } = req.body;
-        const imageFiles = req.files;
+        const mediaFiles = req.files;
 
-        const uploadedImages = await Promise.all(
-            imageFiles.map(async (file) => {
-              const imageBuffer = file.buffer.toString('base64');
-              const imageData = `data:image/jpeg;base64,${imageBuffer}`;
-              return await uploadImage(imageData);
-            })
-        );
+        let uploadedMedia = [];
+        if (mediaFiles.length > 0) {
+            uploadedMedia = await Promise.all(
+                mediaFiles.map(async (file) => {
+                    let resourceType = 'image';
+                    
+                    if (file.mimetype.startsWith("video/")) {
+                        resourceType = 'video';
+                    } else if (file.mimetype.startsWith("audio/")) {
+                        resourceType = 'video'; 
+                    }
+
+                    const fileBuffer = file.buffer.toString('base64');
+                    const fileData = `data:${file.mimetype};base64,${fileBuffer}`;
+
+                    return await uploadMedia(fileData, resourceType);
+                })
+            );
+        } 
         
         const newPost = await Post.create({
             title,
-            image: uploadedImages,
+            image: uploadedMedia,
             user_id,
         });
 
@@ -150,7 +162,7 @@ const deletePost = async (req, res, next) => {
         const post = await Post.findByIdAndDelete({ _id: post_id });
 
         await Reply.deleteMany({ post_id });
-        await deleteImage(post.image);
+        await deleteMedia(post.image);
 
         // Delete the post from Redis cache
         await redisClient.del(`post:${post_id}`);
@@ -242,13 +254,34 @@ const createReply = async (req, res, next) => {
     try {
         const user_id = req.userId;
         const { post_id } = req.params;
-        const { title, image } = req.body;
+        const { title } = req.body;
+        const mediaFiles = req.files;
+
+        let uploadedMedia = [];
+        if (mediaFiles.length > 0) {
+            uploadedMedia = await Promise.all(
+                mediaFiles.map(async (file) => {
+                    let resourceType = 'image';
+                    
+                    if (file.mimetype.startsWith("video/")) {
+                        resourceType = 'video';
+                    } else if (file.mimetype.startsWith("audio/")) {
+                        resourceType = 'video'; 
+                    }
+
+                    const fileBuffer = file.buffer.toString('base64');
+                    const fileData = `data:${file.mimetype};base64,${fileBuffer}`;
+
+                    return await uploadMedia(fileData, resourceType);
+                })
+            );
+        } 
 
         const reply = await Reply.create({
             post_id,
             title,
             user_id,
-            image,
+            image: uploadedMedia,
         });
 
         await Post.findByIdAndUpdate(
@@ -305,7 +338,7 @@ const deleteReply = async (req, res, next) => {
             { $pull: { replies: reply_id } }
         );
 
-        await deleteImage(reply.image);
+        await deleteMedia(reply.image);
 
         // Invalidate cache for the post associated with the deleted reply
         await redisClient.del(`post:${reply.post_id}`);

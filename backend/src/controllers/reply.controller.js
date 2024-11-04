@@ -1,29 +1,40 @@
 const Reply = require('../models/reply.model');
-const { uploadImage } = require('../configs/cloudinary');
+const { uploadMedia } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
 const createReplyToReply = async (req, res, next) => {
     try {
         const user_id = req.userId;
         const { reply_id } = req.params;
-        const { title, image, post_id} = req.body;
+        const { title, post_id} = req.body;
+        const mediaFiles = req.files;
 
-        let reply;
-        if(image) {
-            const cloudImage = await uploadImage(image, 'replies');
-            reply = await Reply.create({
-                title,
-                image: cloudImage,
-                post_id,
-                user_id,
-            });
-        } else {
-            reply = await Reply.create({
-                title,
-                post_id,
-                user_id,
-            })
-        }
+        let uploadedMedia = [];
+        if (mediaFiles.length > 0) {
+            uploadedMedia = await Promise.all(
+                mediaFiles.map(async (file) => {
+                    let resourceType = 'image';
+                    
+                    if (file.mimetype.startsWith("video/")) {
+                        resourceType = 'video';
+                    } else if (file.mimetype.startsWith("audio/")) {
+                        resourceType = 'video'; 
+                    }
+
+                    const fileBuffer = file.buffer.toString('base64');
+                    const fileData = `data:${file.mimetype};base64,${fileBuffer}`;
+
+                    return await uploadMedia(fileData, resourceType);
+                })
+            );
+        } 
+
+        const reply = await Reply.create({
+            title,
+            post_id,
+            user_id,
+            media: uploadedMedia,
+        });
 
         await Reply.updateOne({
             _id: reply_id,
