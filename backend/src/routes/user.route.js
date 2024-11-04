@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.get("/:user_id", userController.getUserInfo);
 router.get("/", userController.getAllUserInfo);
-router.patch("/:user_id", userController.updateUserInfo);
-router.delete("/:user_id", userController.deleteUser);
+router.patch("/:user_id", isAuth, userController.updateUserInfo);
+router.delete("/:user_id", isAuth, userController.deleteUser);
 
 // Followers and Following
 router.get("/replied/:user_id", userController.getUserReplied);

@@ -79,6 +79,23 @@ const getPost = async (req, res, next) => {
     }
 }
 
+const getAllUserCreatePost = async (req, res, next) => {
+    try {
+      const { user_id } = req.params;
+  
+      const posts = await Post.find({
+        user_id,
+      }).sort({ createdAt : -1 }).lean();
+
+      res.status(200).json({
+        message: "Post fetched successfully",
+        metadata: posts,
+      })
+    } catch (err) {
+      next(err);
+    }
+  }
+
 const getAllPosts = async (req, res, next) => {
     try {
         const posts = await Post.find()
@@ -305,6 +322,7 @@ module.exports = {
     createPost,
     getPost,
     getAllPosts,
+    getAllUserCreatePost,
     getUserSharePosts,
     updatePost,
     deletePost,
