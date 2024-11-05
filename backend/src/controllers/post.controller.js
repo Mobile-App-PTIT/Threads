@@ -218,6 +218,8 @@ const sharePost = async (req, res, next) => {
             $addToSet: { share: post_id }
         })
 
+        await redisClient.del(`post:${post_id}`);
+
         res.status(200).json({
             message: "Share successful"
         })
@@ -318,6 +320,9 @@ const updateReply = async (req, res, next) => {
             { title, image },
             { new: true }
         );
+
+        // Invalidate cache for the post associated with the updated reply
+        await redisClient.del(`post:${reply.post_id}`);
 
         res.status(200).json({
             message: "Reply updated successfully",
