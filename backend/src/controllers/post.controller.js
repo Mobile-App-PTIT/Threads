@@ -9,31 +9,27 @@ const createPost = async (req, res, next) => {
     try {
         const user_id = req.userId;
         const { title } = req.body;
-        const mediaFiles = req.files;
+        const mediaFiles = req.files || [];
 
         let uploadedMedia = [];
+
         if (mediaFiles.length > 0) {
             uploadedMedia = await Promise.all(
                 mediaFiles.map(async (file) => {
                     let resourceType = 'image';
-                    
-                    if (file.mimetype.startsWith("video/")) {
-                        resourceType = 'video';
-                    } else if (file.mimetype.startsWith("audio/")) {
-                        resourceType = 'video'; 
-                    }
+                    if (file.mimetype.startsWith("video/")) resourceType = 'video';
+                    else if (file.mimetype.startsWith("audio/")) resourceType = 'audio';
 
                     const fileBuffer = file.buffer.toString('base64');
                     const fileData = `data:${file.mimetype};base64,${fileBuffer}`;
-
                     return await uploadMedia(fileData, resourceType);
                 })
             );
-        } 
+        }
         
         const newPost = await Post.create({
             title,
-            image: uploadedMedia,
+            media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
             user_id,
         });
 
@@ -129,7 +125,7 @@ const getAllPosts = async (req, res, next) => {
 const updatePost = async (req, res, next) => {
     try {
         const { post_id } = req.params;
-        const { title, image, status } = req.body;
+        const { title, media, status } = req.body;
 
         const checkPost = await Post.findById({ _id: post_id });
         if (checkPost.user_id.toString() !== req.user._id.toString()) {
@@ -140,7 +136,7 @@ const updatePost = async (req, res, next) => {
 
         const post = await Post.findByIdAndUpdate(
             { _id: post_id },
-            { title, image, status },
+            { title, media, status },
             { new: true }
         );
 
@@ -162,7 +158,7 @@ const deletePost = async (req, res, next) => {
         const post = await Post.findByIdAndDelete({ _id: post_id });
 
         await Reply.deleteMany({ post_id });
-        await deleteMedia(post.image);
+        await deleteMedia(post.media);
 
         // Delete the post from Redis cache
         await redisClient.del(`post:${post_id}`);
@@ -257,33 +253,29 @@ const createReply = async (req, res, next) => {
         const user_id = req.userId;
         const { post_id } = req.params;
         const { title } = req.body;
-        const mediaFiles = req.files;
+        const mediaFiles = req.files || [];
 
         let uploadedMedia = [];
+
         if (mediaFiles.length > 0) {
             uploadedMedia = await Promise.all(
                 mediaFiles.map(async (file) => {
                     let resourceType = 'image';
-                    
-                    if (file.mimetype.startsWith("video/")) {
-                        resourceType = 'video';
-                    } else if (file.mimetype.startsWith("audio/")) {
-                        resourceType = 'video'; 
-                    }
+                    if (file.mimetype.startsWith("video/")) resourceType = 'video';
+                    else if (file.mimetype.startsWith("audio/")) resourceType = 'audio';
 
                     const fileBuffer = file.buffer.toString('base64');
                     const fileData = `data:${file.mimetype};base64,${fileBuffer}`;
-
                     return await uploadMedia(fileData, resourceType);
                 })
             );
-        } 
+        }
 
         const reply = await Reply.create({
             post_id,
             title,
             user_id,
-            image: uploadedMedia,
+            media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
         });
 
         await Post.findByIdAndUpdate(
@@ -306,7 +298,7 @@ const createReply = async (req, res, next) => {
 const updateReply = async (req, res, next) => {
     try {
         const { reply_id } = req.params;
-        const { title, image } = req.body;
+        const { title, media } = req.body;
         const checkUser = await Reply.findById({ _id: reply_id });
 
         if (checkUser.user_id.toString() !== req.user._id.toString()) {
@@ -317,7 +309,7 @@ const updateReply = async (req, res, next) => {
 
         const reply = await Reply.findByIdAndUpdate(
             { _id: reply_id },
-            { title, image },
+            { title, media },
             { new: true }
         );
 
@@ -343,7 +335,7 @@ const deleteReply = async (req, res, next) => {
             { $pull: { replies: reply_id } }
         );
 
-        await deleteMedia(reply.image);
+        await deleteMedia(reply.media);
 
         // Invalidate cache for the post associated with the deleted reply
         await redisClient.del(`post:${reply.post_id}`);

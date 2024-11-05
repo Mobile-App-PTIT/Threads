@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,23 +8,26 @@ import {
   ScrollView,
   TextInput,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import axios from 'axios';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Feather from 'react-native-vector-icons/Feather'
+import Feather from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import uri from '../../redux/uri';
 import getTimeDuration from '../common/TimeGenerator';
+import Video from 'react-native-video';
+import {Audio} from 'expo-av';
 
-const ReplyDetailsScreen = ({ navigation, route }) => {
-  const { reply_id } = route.params;
-  const { user } = useSelector(state => state.user);
+const ReplyDetailsScreen = ({navigation, route}) => {
+  const {reply_id} = route.params;
+  const {user} = useSelector(state => state.user);
   const [replies, setReplies] = useState([]);
   const [comment, setComment] = useState(null);
-  const [isInputFocused, setIsInputFocused] = useState(false); 
-  const [image, setImage] = useState([])
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState([]);
   const [newReply, setNewReply] = useState('');
 
   useEffect(() => {
@@ -50,23 +53,29 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
     if (!newReply.trim()) return;
 
     try {
+      const formData = new FormData();
+      formData.append('title', newReply);
+      formData.append('post_id', comment.post_id);
+
+      mediaFiles.forEach((file, index) => {
+        formData.append('mediaFiles', {
+          uri: file.uri,
+          type: file.type,
+          name: `mediaFile_${index}.${file.type.split('/')[1]}`,
+        });
+      });
+
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.post(
-        `${uri}/reply/${reply_id}`,
-        {
-          title: newReply,
-          post_id: comment.post_id,
+      const response = await axios.post(`${uri}/reply/${reply_id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      });
 
       setReplies([response.data.metadata, ...replies]);
       setNewReply('');
+      setMediaFiles([]);
     } catch (error) {
       console.error('Error adding reply:', error);
     }
@@ -83,7 +92,7 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       setReplies(prevReplies =>
@@ -95,34 +104,43 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
                   ? reply.likes.filter(id => id !== user._id)
                   : [...reply.likes, user._id],
               }
-            : reply
-        )
+            : reply,
+        ),
       );
     } catch (error) {
       console.error('Error toggling like:', error);
     }
   };
 
-  const uploadPostImage = () => {
-    ImagePicker.openPicker({
-      width: 300,
-      height: 300,
-      cropping: true,
-      compressImageQuality: 0.8,
-      includeBase64: true,
+  const uploadPostMedia = type => {
+    const options = {
       multiple: true,
-    }).then(images => {
-      if (images.length > 0) {
-        const selectedImages = images.map(
-          image => 'data:image/jpeg;base64,' + image.data,
-        );
-        setImage([...image, ...selectedImages]);
-      }
-    });
+      compressImageQuality: 0.8,
+      includeBase64: false,
+      mediaType: type,
+    };
+
+    if (type === 'photo' || type === 'video') {
+      ImagePicker.openPicker(options)
+        .then(files => {
+          const selectedFiles = Array.isArray(files) ? files : [files];
+          const newFiles = selectedFiles.map(file => ({
+            uri: file.path,
+            type: file.mime,
+          }));
+          setMediaFiles(prevFiles => [...prevFiles, ...newFiles]);
+        })
+        .catch(error => {
+          console.error('Error picking media:', error);
+        });
+    } else if (type === 'audio') {
+      // Implement audio picker if available
+      Alert.alert('Audio upload is not supported in this demo.');
+    }
   };
 
-  const removeImage = (index) => {
-    setImage(prevImages => prevImages.filter((_, i) => i !== index));
+  const removeMediaFile = index => {
+    setMediaFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
   return (
@@ -142,10 +160,10 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
             <Image
               source={
                 comment?.user_id?.avatar
-                  ? { uri: comment.user_id.avatar }
+                  ? {uri: comment.user_id.avatar}
                   : require('../../assets/images/avatar.jpg')
               }
-              style={{ width: 35, height: 35, borderRadius: 17.5 }}
+              style={{width: 35, height: 35, borderRadius: 17.5}}
             />
             <View className="pl-3">
               <Text className="text-white font-medium">
@@ -159,15 +177,87 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
           <Text className="mt-2 text-gray-400">
             {comment?.title || 'No Content'}
           </Text>
+          {/* Render Media for the Comment */}
+          {comment?.media && comment.media.length > 0 && (
+            <ScrollView horizontal className="my-3 flex flex-row">
+              {comment.media.map((mediaItem, idx) => {
+                // Since mediaItem is a string (URL), we need to determine the media type
+                const mediaUrl = mediaItem;
+                let mediaType = '';
+
+                if (mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                  mediaType = 'image';
+                } else if (mediaUrl.match(/\.(mp4|mov|avi|mkv)$/i)) {
+                  mediaType = 'video';
+                } else if (mediaUrl.match(/\.(mp3|wav|ogg)$/i)) {
+                  mediaType = 'audio';
+                } else {
+                  // Default to image if unable to determine
+                  mediaType = 'image';
+                }
+
+                if (mediaType === 'image') {
+                  return (
+                    <Image
+                      key={idx}
+                      source={{uri: mediaUrl}}
+                      style={{
+                        width: 260,
+                        height: 260,
+                        borderRadius: 10,
+                        marginRight: 20,
+                      }}
+                      resizeMode="cover"
+                    />
+                  );
+                } else if (mediaType === 'video') {
+                  return (
+                    <Video
+                      key={idx}
+                      source={{uri: mediaUrl}}
+                      style={{
+                        width: 260,
+                        height: 260,
+                        borderRadius: 10,
+                        marginRight: 20,
+                      }}
+                      controls
+                      resizeMode="cover"
+                    />
+                  );
+                } else if (mediaType === 'audio') {
+                  return (
+                    <View key={idx} style={{marginRight: 20}}>
+                      <Text style={{color: 'white'}}>Audio Clip {idx + 1}</Text>
+                      {/* Implement an audio player */}
+                    </View>
+                  );
+                } else {
+                  return null;
+                }
+              })}
+            </ScrollView>
+          )}
           <View className="flex-row items-center mt-2">
             <Ionicons
-              name={comment?.likes?.includes(user._id) ? 'heart' : 'heart-outline'}
+              name={
+                comment?.likes?.includes(user._id) ? 'heart' : 'heart-outline'
+              }
               size={20}
               color={comment?.likes?.includes(user._id) ? 'red' : 'white'}
             />
-            <Text className="ml-2 text-gray-400">{comment?.likes?.length || 0} Likes</Text>
-            <Ionicons name="chatbubble-outline" size={20} color="white" style={{ marginLeft: 16 }} />
-            <Text className="ml-2 text-gray-400">{comment?.replies?.length || 0} Replies</Text>
+            <Text className="ml-2 text-gray-400">
+              {comment?.likes?.length || 0} Likes
+            </Text>
+            <Ionicons
+              name="chatbubble-outline"
+              size={20}
+              color="white"
+              style={{marginLeft: 16}}
+            />
+            <Text className="ml-2 text-gray-400">
+              {comment?.replies?.length || 0} Replies
+            </Text>
           </View>
         </View>
       )}
@@ -184,10 +274,10 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
                   <Image
                     source={
                       reply?.user_id?.avatar
-                        ? { uri: reply.user_id.avatar }
+                        ? {uri: reply.user_id.avatar}
                         : require('../../assets/images/avatar.jpg')
                     }
-                    style={{ width: 35, height: 35, borderRadius: 17.5 }}
+                    style={{width: 35, height: 35, borderRadius: 17.5}}
                   />
                   <View className="pl-3">
                     <Text className="text-white font-medium">
@@ -201,20 +291,90 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
                 <Text className="mt-2 text-gray-400">
                   {reply?.title || 'No Content'}
                 </Text>
+                {/* Render Media for the Reply */}
+                {reply?.media && reply.media.length > 0 && (
+                  <ScrollView horizontal className="my-3 flex flex-row">
+                    {reply.media.map((mediaItem, idx) => {
+                      const mediaUrl = mediaItem;
+                      let mediaType = '';
+
+                      if (mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                        mediaType = 'image';
+                      } else if (mediaUrl.match(/\.(mp4|mov|avi|mkv)$/i)) {
+                        mediaType = 'video';
+                      } else if (mediaUrl.match(/\.(mp3|wav|ogg)$/i)) {
+                        mediaType = 'audio';
+                      } else {
+                        mediaType = 'image';
+                      }
+
+                      if (mediaType === 'image') {
+                        return (
+                          <Image
+                            key={idx}
+                            source={{uri: mediaUrl}}
+                            style={{
+                              width: 260,
+                              height: 260,
+                              borderRadius: 10,
+                              marginRight: 20,
+                            }}
+                            resizeMode="cover"
+                          />
+                        );
+                      } else if (mediaType === 'video') {
+                        return (
+                          <Video
+                            key={idx}
+                            source={{uri: mediaUrl}}
+                            style={{
+                              width: 260,
+                              height: 260,
+                              borderRadius: 10,
+                              marginRight: 20,
+                            }}
+                            controls
+                            resizeMode="cover"
+                          />
+                        );
+                      } else if (mediaType === 'audio') {
+                        return (
+                          <View key={idx} style={{marginRight: 20}}>
+                            <Text style={{color: 'white'}}>
+                              Audio Clip {idx + 1}
+                            </Text>
+                            {/* Implement an audio player */}
+                          </View>
+                        );
+                      } else {
+                        return null;
+                      }
+                    })}
+                  </ScrollView>
+                )}
                 <View className="flex-row items-center mt-2">
                   <TouchableOpacity
-                    onPress={() => toggleLike(reply._id, reply.likes.includes(user._id), index)}
-                    className="flex-row items-center mr-4"
-                  >
+                    onPress={() =>
+                      toggleLike(
+                        reply._id,
+                        reply.likes.includes(user._id),
+                        index,
+                      )
+                    }
+                    className="flex-row items-center mr-4">
                     <Ionicons
-                      name={reply.likes.includes(user._id) ? 'heart' : 'heart-outline'}
+                      name={
+                        reply.likes.includes(user._id)
+                          ? 'heart'
+                          : 'heart-outline'
+                      }
                       size={20}
                       color={reply.likes.includes(user._id) ? 'red' : 'white'}
                     />
-                    <Text className="ml-2 text-gray-400">{reply.likes.length || 0} Likes</Text>
+                    <Text className="ml-2 text-gray-400">
+                      {reply.likes.length || 0} Likes
+                    </Text>
                   </TouchableOpacity>
-                  <Ionicons name="chatbubble-outline" size={20} color="white" />
-                  <Text className="ml-2 text-gray-400">{reply?.replies?.length || 0} Replies</Text>
                 </View>
               </View>
             ))
@@ -224,46 +384,97 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
         </View>
       </ScrollView>
 
-      {image.length > 0 && (
+      {/* Media Preview */}
+      {mediaFiles.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row p-2 h-0 bg-zinc-800 border-t border-gray-700">
-          {image.map((image, index) => (
-            <View key={index} className="mr-2 relative">
-              <Image
-                source={{ uri: image }}
-                style={{ width: 100, height: 100, borderRadius: 8 }}
-              />
-              <TouchableOpacity
-                onPress={() => removeImage(index)}
-                style={{
-                  position: 'absolute',
-                  top: -5,
-                  right: -5,
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  borderRadius: 10,
-                  padding: 2,
-                }}>
-                <Ionicons name="close" size={16} color="white" />
-              </TouchableOpacity>
-            </View>
-          ))}
+          className="flex-row p-2 bg-zinc-800 border-t border-gray-700">
+          {mediaFiles.map((file, index) => {
+            const mediaType = file.type.split('/')[0];
+            if (mediaType === 'image') {
+              return (
+                <View key={index} className="mr-2 relative">
+                  <Image
+                    source={{uri: file.uri}}
+                    style={{width: 100, height: 100, borderRadius: 8}}
+                  />
+                  <TouchableOpacity
+                    onPress={() => removeMediaFile(index)}
+                    style={{
+                      position: 'absolute',
+                      top: -5,
+                      right: -5,
+                      backgroundColor: 'rgba(0,0,0,0.6)',
+                      borderRadius: 10,
+                      padding: 2,
+                    }}>
+                    <Ionicons name="close" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+              );
+            } else if (mediaType === 'video') {
+              return (
+                <View key={index} className="mr-2 relative">
+                  <Video
+                    source={{uri: file.uri}}
+                    style={{width: 100, height: 100, borderRadius: 8}}
+                    resizeMode="cover"
+                    muted
+                  />
+                  <TouchableOpacity
+                    onPress={() => removeMediaFile(index)}
+                    style={{
+                      position: 'absolute',
+                      top: -5,
+                      right: -5,
+                      backgroundColor: 'rgba(0,0,0,0.6)',
+                      borderRadius: 10,
+                      padding: 2,
+                    }}>
+                    <Ionicons name="close" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+              );
+            } else if (mediaType === 'audio') {
+              return (
+                <View key={index} className="mr-2 relative">
+                  <Feather name="music" size={50} color="white" />
+                  <TouchableOpacity
+                    onPress={() => removeMediaFile(index)}
+                    style={{
+                      position: 'absolute',
+                      top: -5,
+                      right: -5,
+                      backgroundColor: 'rgba(0,0,0,0.6)',
+                      borderRadius: 10,
+                      padding: 2,
+                    }}>
+                    <Ionicons name="close" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+              );
+            } else {
+              return null;
+            }
+          })}
         </ScrollView>
       )}
 
       {/* Reply Input Section */}
       <KeyboardAvoidingView behavior="padding">
         <View className="p-4 bg-zinc-800 border-t border-gray-700 flex-row items-center gap-2">
-        {!isInputFocused && (
+          {!isInputFocused && (
             <>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => uploadPostMedia('video')}>
                 <Feather name="video" color={'white'} size={21} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => uploadPostMedia('audio')}>
                 <Feather name="mic" color={'white'} size={21} />
               </TouchableOpacity>
-              <TouchableOpacity className="mr-2" onPress={uploadPostImage}>
+              <TouchableOpacity
+                className="mr-2"
+                onPress={() => uploadPostMedia('photo')}>
                 <Ionicons name="images-outline" size={22} color="white" />
               </TouchableOpacity>
             </>
@@ -274,6 +485,8 @@ const ReplyDetailsScreen = ({ navigation, route }) => {
             placeholder="Write a reply..."
             placeholderTextColor="#999"
             className="flex-1 bg-zinc-700 text-white p-2 rounded-lg"
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
           />
           <TouchableOpacity onPress={handleAddReply} className="ml-3">
             <Ionicons name="send" size={24} color="white" />

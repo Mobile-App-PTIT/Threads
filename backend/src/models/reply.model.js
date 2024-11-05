@@ -6,9 +6,9 @@ const replySchema = new Schema({
         type: String,
         required: true,
     },
-    image: {
-        type: String,
-        default: '',
+    media: {
+        type: Array,
+        default: [],
     },
     likes: {
         type: [Types.ObjectId],

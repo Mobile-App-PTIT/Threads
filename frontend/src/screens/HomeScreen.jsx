@@ -20,7 +20,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import {SafeAreaView} from 'react-native';
 import {useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
-import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
 import Toast from 'react-native-toast-message';
@@ -116,24 +115,6 @@ const HomeScreen = props => {
     setSelectedPostId(post_id);
     setSharePopupVisible(true);
   };
-
-  // useEffect(() => {
-  //   if (isRefreshing) {
-  //     Animated.timing(extraPaddingTop, {
-  //       toValue: refreshingHeight,
-  //       duration: 0,
-  //       useNativeDriver: false,
-  //     }).start();
-  //     lottieViewRef.current?.play();
-  //   } else {
-  //     Animated.timing(extraPaddingTop, {
-  //       toValue: 0,
-  //       duration: 400,
-  //       easing: Easing.elastic(1.3),
-  //       useNativeDriver: false,
-  //     }).start();
-  //   }
-  // }, [isRefreshing]);
 
   const toggleLike = async (postId, liked, index) => {
     try {
@@ -286,9 +267,9 @@ const HomeScreen = props => {
                     </View>
                   </View>
                 </View>
-                  {Array.isArray(item?.image) && item.image.length > 0 ? (
+                  {Array.isArray(item?.media) && item.media.length > 0 ? (
                     <ScrollView horizontal className="ml-[50px] my-3 flex flex-row">
-                      {item.image.map((img, idx) => (
+                      {item.media.map((img, idx) => (
                         <Image
                           key={idx}
                           source={{uri: img}}

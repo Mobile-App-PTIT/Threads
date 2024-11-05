@@ -6,49 +6,45 @@ const createReplyToReply = async (req, res, next) => {
     try {
         const user_id = req.userId;
         const { reply_id } = req.params;
-        const { title, post_id} = req.body;
-        const mediaFiles = req.files;
+        const { title, post_id } = req.body;
+        const mediaFiles = req.files || [];
 
         let uploadedMedia = [];
+
         if (mediaFiles.length > 0) {
             uploadedMedia = await Promise.all(
                 mediaFiles.map(async (file) => {
                     let resourceType = 'image';
-                    
-                    if (file.mimetype.startsWith("video/")) {
-                        resourceType = 'video';
-                    } else if (file.mimetype.startsWith("audio/")) {
-                        resourceType = 'video'; 
-                    }
+                    if (file.mimetype.startsWith("video/")) resourceType = 'video';
+                    else if (file.mimetype.startsWith("audio/")) resourceType = 'audio';
 
                     const fileBuffer = file.buffer.toString('base64');
                     const fileData = `data:${file.mimetype};base64,${fileBuffer}`;
-
                     return await uploadMedia(fileData, resourceType);
                 })
             );
-        } 
+        }
 
-        const reply = await Reply.create({
+        const replyData = {
             title,
             post_id,
             user_id,
-            media: uploadedMedia,
-        });
+            media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
+        };
 
-        await Reply.updateOne({
-            _id: reply_id,
-        }, {
-            $push: {
-                replies: reply._id,
-            }
-        })
+        const reply = await Reply.create(replyData);
+
+        await Reply.updateOne(
+            { _id: reply_id },
+            { $push: { replies: reply._id } }
+        );
 
         res.status(201).json({
             message: "Reply created successfully",
             metadata: reply,
         });
-    } catch(err) {
+    } catch (err) {
+        console.error("Error in createReply:", err);
         next(err);
     }
 }
@@ -69,6 +65,7 @@ const getRepliesOfReply = async (req, res, next) => {
             'path': 'user_id',
             'select': '-password -gmail',
         }).lean();
+        console.log(replies.replies);
 
         await redisClient.set(`reply:${reply_id}`, JSON.stringify(replies));
         res.status(200).json({

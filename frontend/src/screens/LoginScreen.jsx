@@ -34,7 +34,7 @@ const LoginScreen = ({navigation}) => {
   };
 
   useEffect(() => {
-    navigation.navigate('Home'); // Điều hướng đến trang Home sau khi đăng nhập thành công
+    navigation.navigate('HomeScreen'); // Điều hướng đến trang Home sau khi đăng nhập thành công
     if (isAuthenticated) {
       Toast.show({
         type: 'success',

@@ -16,6 +16,7 @@ import {useSelector} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
+import Video from 'react-native-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PostDetailsScreen = ({navigation, route}) => {
@@ -24,8 +25,8 @@ const PostDetailsScreen = ({navigation, route}) => {
   const [postData, setPostData] = useState({});
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(false); 
-  const [image, setImage] = useState([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState([]);
 
   useEffect(() => {
     const fetchPostAndComments = async () => {
@@ -50,20 +51,34 @@ const PostDetailsScreen = ({navigation, route}) => {
     if (!newComment.trim()) return;
 
     try {
+      const formData = new FormData();
+      formData.append('title', newComment);
+      formData.append('post_id', post_id);
+
+      // Append media files to formData
+      mediaFiles.forEach((file, index) => {
+        formData.append('mediaFiles', {
+          uri: file.uri,
+          type: file.type,
+          name: `mediaFile_${index}.${file.type.split('/')[1]}`,
+        });
+      });
+
       const token = await AsyncStorage.getItem('token');
       const response = await axios.post(
         `${uri}/post/${post_id}/reply`,
-        {title: newComment},
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
           },
         },
       );
 
       setComments([response.data.metadata, ...comments]);
       setNewComment('');
+      setMediaFiles([]);
     } catch (error) {
       console.error('Error adding comment:', error);
     }
@@ -126,28 +141,37 @@ const PostDetailsScreen = ({navigation, route}) => {
     }
   };
 
-  const uploadPostImage = () => {
-    ImagePicker.openPicker({
-      width: 300,
-      height: 300,
-      cropping: true,
+  const uploadPostMedia = type => {
+    const options = {
+      multiple: true,
       compressImageQuality: 0.8,
       includeBase64: true,
-      multiple: true,
-    }).then(images => {
-      if (images.length > 0) {
-        const selectedImages = images.map(
-          image => 'data:image/jpeg;base64,' + image.data,
-        );
-        setImage([...image, ...selectedImages]);
-      }
-    });
+    };
+    if (type === 'image') {
+      ImagePicker.openPicker({...options, mediaType: 'photo'}).then(files => {
+        const selectedFiles = files.map(file => ({
+          uri: `data:image/jpeg;base64,${file.data}`,
+          type: 'image/jpeg',
+        }));
+        setMediaFiles(prevFiles => [...prevFiles, ...selectedFiles]);
+      });
+    } else if (type === 'video') {
+      ImagePicker.openPicker({...options, mediaType: 'video'}).then(files => {
+        const selectedFiles = files.map(file => ({
+          uri: file.path,
+          type: 'video/mp4',
+        }));
+        setMediaFiles(prevFiles => [...prevFiles, ...selectedFiles]);
+      });
+    } else if (type === 'audio') {
+      // Here you can use a different picker for audio, if available
+      Alert.alert('Audio upload is currently not supported in this demo.');
+    }
   };
 
-  const removeImage = (index) => {
-    setImage(prevImages => prevImages.filter((_, i) => i !== index));
+  const removeMediaFile = index => {
+    setMediaFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
-  console.log(postData);
 
   return (
     <SafeAreaView className="bg-zinc-900 flex-1">
@@ -189,10 +213,10 @@ const PostDetailsScreen = ({navigation, route}) => {
           <Text className="mt-2 text-white font-semibold">
             {postData?.title || 'No Title'}
           </Text>
-          
-          {postData?.image && (
+
+          {postData?.media && (
             <ScrollView horizontal className="my-3 flex flex-row">
-              {postData?.image?.map((i, _id) => (
+              {postData?.media?.map((i, _id) => (
                 <Image
                   key={_id}
                   source={{uri: i}}
@@ -257,6 +281,50 @@ const PostDetailsScreen = ({navigation, route}) => {
                 <Text className="mt-2 text-gray-400">
                   {comment?.title || 'No Content'}
                 </Text>
+
+                {/* Render Media */}
+                {comment?.media && comment.media.length > 0 && (
+                  <ScrollView horizontal className="my-3 flex flex-row">
+                    {comment.media.map((mediaItem, idx) => {
+                      const isImage = mediaItem.match(/\.(jpeg|jpg|gif|png)$/i);
+                      const isVideo = mediaItem.match(/\.(mp4|mov|avi|mkv)$/i);
+
+                      if (isImage) {
+                        return (
+                          <Image
+                            key={idx}
+                            source={{uri: mediaItem}}
+                            style={{
+                              width: 260,
+                              height: 260,
+                              borderRadius: 10,
+                              marginRight: 20,
+                            }}
+                            resizeMode="cover"
+                          />
+                        );
+                      } else if (isVideo) {
+                        return (
+                          <Video
+                            key={idx}
+                            source={{uri: mediaItem}}
+                            style={{
+                              width: 260,
+                              height: 260,
+                              borderRadius: 10,
+                              marginRight: 20,
+                            }}
+                            controls
+                            resizeMode="cover"
+                          />
+                        );
+                      } else {
+                        return null;
+                      }
+                    })}
+                  </ScrollView>
+                )}
+
                 <View className="flex-row items-center mt-2">
                   <TouchableOpacity
                     onPress={() =>
@@ -293,10 +361,9 @@ const PostDetailsScreen = ({navigation, route}) => {
                       color="white"
                     />
                     <Text className="ml-2 text-gray-400">
-                    {comment?.replies?.length || 0} Replies
-                  </Text>
+                      {comment?.replies?.length || 0} Replies
+                    </Text>
                   </TouchableOpacity>
-                  
                 </View>
               </View>
             ))
@@ -306,20 +373,19 @@ const PostDetailsScreen = ({navigation, route}) => {
         </View>
       </ScrollView>
 
-      {image.length > 0 && (
+      {mediaFiles.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{height: 100}}
-          className="flex-row p-2 bg-zinc-800 border-t border-gray-700 z-50">
-          {image.map((image, index) => (
+          className="flex-row p-2 bg-zinc-800 border-t border-gray-700">
+          {mediaFiles.map((file, index) => (
             <View key={index} className="mr-2 relative">
               <Image
-                source={{ uri: image }}
-                style={{ width: 100, height: 100, borderRadius: 8 }}
+                source={{uri: file.uri}}
+                style={{width: 100, height: 100, borderRadius: 8}}
               />
               <TouchableOpacity
-                onPress={() => removeImage(index)}
+                onPress={() => removeMediaFile(index)}
                 style={{
                   position: 'absolute',
                   top: -5,
@@ -339,13 +405,13 @@ const PostDetailsScreen = ({navigation, route}) => {
         <View className="p-4 bg-zinc-800 border-t border-gray-700 flex-row items-center gap-2">
           {!isInputFocused && (
             <>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => uploadPostMedia('video')}>
                 <Feather name="video" color={'white'} size={21} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => uploadPostMedia('audio')}>
                 <Feather name="mic" color={'white'} size={21} />
               </TouchableOpacity>
-              <TouchableOpacity className="mr-2" onPress={uploadPostImage}>
+              <TouchableOpacity onPress={() => uploadPostMedia('image')}>
                 <Ionicons name="images-outline" size={22} color="white" />
               </TouchableOpacity>
             </>
@@ -357,8 +423,8 @@ const PostDetailsScreen = ({navigation, route}) => {
             placeholder="Write a comment..."
             placeholderTextColor="#999"
             className="flex-1 bg-zinc-700 text-white p-2 rounded-lg"
-            onFocus={() => setIsInputFocused(true)} 
-            onBlur={() => setIsInputFocused(false)} 
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
           />
 
           <TouchableOpacity onPress={handleAddComment} className="ml-3">
