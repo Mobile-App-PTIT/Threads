@@ -31,10 +31,10 @@ const LoginScreen = ({navigation}) => {
       });
       dispatch({type: 'clearError'});
     }
+    navigation.navigate('Home');
   };
 
   useEffect(() => {
-    navigation.navigate('HomeScreen'); // Điều hướng đến trang Home sau khi đăng nhập thành công
     if (isAuthenticated) {
       Toast.show({
         type: 'success',

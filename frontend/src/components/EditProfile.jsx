@@ -7,7 +7,6 @@ import {
   TextInput,
   Image,
 } from 'react-native';
-
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -19,41 +18,45 @@ import {loadUser} from '../../redux/actions/userAction';
 
 const EditProfile = ({navigation}) => {
   const {user, token} = useSelector(state => state.user);
-  const [avatar, setAvatar] = useState(user?.avatar?.url);
   const dispatch = useDispatch();
   const [userData, setUserData] = useState({
     name: user?.name,
     subname: user?.subname,
     bio: user?.bio,
+    avatar: user?.avatar,
   });
 
   const handleSubmitHandler = async () => {
-    const token = await AsyncStorage.getItem('token');
     console.log(userData);
     try {
-      const response = await axios.patch(
-        `${uri}/user/${user._id}`,
-        {
-          name: userData.name,
-          subname: userData.subname,
-          bio: userData.bio,
-        },
+      const formData = new FormData();
+      formData.append('name', userData.name);
+      formData.append('subname', userData.subname);
+      formData.append('bio', userData.bio);
+      
+      if(userData.avatar) {
+        formData.append('avatar', {
+          uri: userData.avatar,
+          type: 'image/jpeg',
+          name: 'avatar.jpg',
+        });
+      }
+
+      const response = await axios.patch(`${uri}/user/${user._id}`, formData,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data',
           },
         },
       );
       if (response.status === 200) {
+        // dispatch(loadUser());
         navigation.navigate('Profile');
       }
     } catch (error) {
       console.log(error);
     }
-
-    // .then(res => {
-    //   loadUser()(dispatch);
-    // });
   };
 
   const ImageUpload = () => {
@@ -65,22 +68,10 @@ const EditProfile = ({navigation}) => {
       includeBase64: true,
     }).then(image => {
       if (image) {
-        // setImage('data:image/jpeg;base64,' + image.data);
-        axios
-          .put(
-            `${uri}/update-avatar`,
-            {
-              avatar: 'data:image/jpeg;base64,' + image?.data,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          )
-          .then(res => {
-            loadUser()(dispatch);
-          });
+        setUserData({
+          ...userData,
+          avatar: image.path,
+        });
       }
     });
   };
@@ -126,10 +117,10 @@ const EditProfile = ({navigation}) => {
                 <Image
                   source={
                     userData?.avatar
-                      ? {uri: userData.avatar}
+                      ? { uri: userData.avatar }
                       : require('../../assets/images/avatar.jpg')
                   }
-                  style={{width: 50, height: 50}}
+                  style={{ width: 50, height: 50 }}
                   borderRadius={100}
                 />
               </TouchableOpacity>

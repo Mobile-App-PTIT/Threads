@@ -37,6 +37,7 @@ const RegisterScreen = ({navigation}) => {
 
   const handleRegister = async () => {
     await registerUser(name, email, password)(dispatch);
+    navigation.navigate('Login');
   };
 
   return (

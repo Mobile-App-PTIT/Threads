@@ -12,6 +12,7 @@ const Main = () => {
     return (
         <Stack.Navigator initialRouteName="Home" screenOptions={{headerShown: false}}>
             <Stack.Screen name="Home" component={Tabs}/>
+            {/* <Stack.Screen name="HomeScreen" component={HomeScreen} /> */}
             <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
             <Stack.Screen name="ReplyDetailsScreen" component={ReplyDetailsScreen} />

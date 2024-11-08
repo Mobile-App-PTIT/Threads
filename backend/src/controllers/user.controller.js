@@ -1,21 +1,30 @@
 const User = require("../models/user.model");
 const Reply = require("../models/reply.model");
+const { uploadMedia } = require('../configs/cloudinary');
 const redisClient = require("../configs/redis");
 
 const updateUserInfo = async (req, res, next) => {
   try {
     const { user_id } = req.params;
-    const { subname, name, bio, image } = req.body;
+    const { subname, name, bio } = req.body;
+    const avatar = req.file;
+
+    const updateFields = {
+      name,
+      bio,
+      subname,
+    }
+
+    if(avatar) {
+      const fileBuffer = avatar.buffer.toString('base64');
+      const fileData = `data:${avatar.mimetype};base64,${fileBuffer}`;
+      const image = await uploadMedia(fileData);  
+      updateFields.avatar = image;    
+    }
+
     const user = await User.findByIdAndUpdate(
-      {
-        _id: user_id,
-      },
-      {
-        name,
-        bio,
-        subname,
-        image,
-      },
+      { _id: user_id },
+      updateFields,
       { new: true }
     );
 
