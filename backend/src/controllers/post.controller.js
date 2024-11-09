@@ -1,6 +1,7 @@
 const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
+const Notification = require('../models/notification.model');
 const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
@@ -191,6 +192,9 @@ const likeOrUnlikePost = async (req, res, next) => {
             await Post.updateOne({ _id: post_id }, { $addToSet: { likes: user_id } });
         }
 
+        // Notify the post owner about the like/unlike
+        await notifyPostOwner({ post_id, type: hasLiked ? "unlike" : "like" });
+
         // Invalidate the cached post to reflect the new like/unlike status
         await redisClient.del(`post:${post_id}`);
 
@@ -283,6 +287,9 @@ const createReply = async (req, res, next) => {
             { $push: { replies: reply._id } }
         );
 
+        // Notify the post owner about the new reply
+        await notifyPostOwner({ post_id, type: "comment" });
+
         // Invalidate cache as new reply is added
         await redisClient.del(`post:${post_id}`);
 
@@ -345,6 +352,31 @@ const deleteReply = async (req, res, next) => {
         });
     } catch (err) {
         next(err);
+    }
+}
+
+// Notification
+const notifyPostOwner = async ({ post_id, type }) => {
+    try {
+        const post = await Post.findById(post_id);
+        if (!post) throw new Error("Post not found");
+
+        const ownerId = post.user_id;
+
+        const notificationData = {
+            user_id: ownerId,
+            post_id,
+            type,
+            message:`Someone ${type} on your post.`,
+        }
+
+        // Save notification to database
+        await Notification.create(notificationData);
+
+        // Publish notification to Redis
+        await redisClient.publish(`notifications:${ownerId}`, JSON.stringify(notificationData));
+    } catch(err) {
+        console.error("Error in createNotification:", err);
     }
 }
 

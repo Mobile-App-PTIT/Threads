@@ -1,7 +1,6 @@
 const http = require('http');
 const socketIo = require('socket.io');
 const redisClient = require('./configs/redis');
-const User = require('./models/user.model');
 
 let socketServer = (app) => {
   const server = http.createServer(app);

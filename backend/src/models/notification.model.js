@@ -6,7 +6,7 @@ const notificationSchema = new Schema({
         type: String,
         required: true,
     },
-    title: {
+    message: {
         type: String,
         required: true,
     },
@@ -15,6 +15,10 @@ const notificationSchema = new Schema({
         ref: 'User',
         required: true,
     },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    }
 })
 
 module.exports = model('Notification', notificationSchema);
