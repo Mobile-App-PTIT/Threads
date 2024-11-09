@@ -107,8 +107,8 @@ const login = async (req, res, next) => {
     await newRefreshToken.save();
 
     // save in cache redis
-    await redisClient.set(`accessToken:${accessToken}`, JSON.stringify(req.userId), {
-      EX: process.env.JWT_ACCESS_EXPIRATION * 3600
+    await redisClient.set(`accessToken:${accessToken}`, JSON.stringify(user._id), {
+      EX: 10 * 3600
     });
 
     res.status(200).json({
