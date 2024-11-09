@@ -1,7 +1,4 @@
 const jwt = require('jsonwebtoken');
-const RefreshToken = require('../models/token.model');
-const User = require('../models/user.model');
-const redisClient = require('../configs/redis');
 
 const isAuth = async (req, res, next) => {
   try {
@@ -26,8 +23,6 @@ const isAuth = async (req, res, next) => {
       throw error;
     }
     req.userId = decodedToken.userId;
-    // save in cache redis
-    await redisClient.set(`accessToken:${authHeader}`, req.userId);
     next();
   } catch (err) {
     if (!err.statusCode) err.statusCode = 500;
