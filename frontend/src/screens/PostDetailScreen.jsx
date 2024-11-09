@@ -175,7 +175,10 @@ const PostDetailsScreen = ({navigation, route}) => {
 
   return (
     <SafeAreaView className="bg-zinc-900 flex-1">
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: mediaFiles.length > 0 ? 130 : 0, // Adjust padding based on mediaFiles
+        }}>
         {/* Header with Back Button */}
         <View className="flex-row items-center p-4 bg-zinc-900 border-b border-gray-700">
           <TouchableOpacity
@@ -377,7 +380,7 @@ const PostDetailsScreen = ({navigation, route}) => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row p-2 bg-zinc-800 border-t border-gray-700">
+          className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-[70px]">
           {mediaFiles.map((file, index) => (
             <View key={index} className="mr-2 relative">
               <Image
@@ -411,7 +414,9 @@ const PostDetailsScreen = ({navigation, route}) => {
               <TouchableOpacity onPress={() => uploadPostMedia('audio')}>
                 <Feather name="mic" color={'white'} size={21} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => uploadPostMedia('image')}>
+              <TouchableOpacity
+                className="mr-2"
+                onPress={() => uploadPostMedia('image')}>
                 <Ionicons name="images-outline" size={22} color="white" />
               </TouchableOpacity>
             </>
@@ -428,7 +433,7 @@ const PostDetailsScreen = ({navigation, route}) => {
           />
 
           <TouchableOpacity onPress={handleAddComment} className="ml-3">
-            <Ionicons name="send" size={24} color="white" />
+            <Ionicons name="send" size={22} color="white" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

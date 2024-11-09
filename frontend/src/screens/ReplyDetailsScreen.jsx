@@ -262,7 +262,10 @@ const ReplyDetailsScreen = ({navigation, route}) => {
         </View>
       )}
 
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: mediaFiles.length > 0 ? 130 : 0, // Adjust padding based on mediaFiles
+        }}>
         <View className="p-4">
           <Text className="text-lg text-white font-bold">
             Replies ({replies.length})
@@ -389,7 +392,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row p-2 bg-zinc-800 border-t border-gray-700">
+          className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-[70px]">
           {mediaFiles.map((file, index) => {
             const mediaType = file.type.split('/')[0];
             if (mediaType === 'image') {
