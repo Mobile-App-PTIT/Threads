@@ -215,7 +215,7 @@ const sharePost = async (req, res, next) => {
         await User.findByIdAndUpdate({
             _id: user_id
         }, {
-            $addToSet: { share: post_id }
+            $addToSet: { share: { post_id } }
         })
 
         await redisClient.del(`post:${post_id}`);
@@ -232,19 +232,66 @@ const getUserSharePosts = async (req, res, next) => {
     try {
         const { user_id } = req.params;
 
-        const sharePosts = await User.findById(user_id)
-            .populate({
-                'path': 'share',
+        let sharePosts = [];
+        if(user_id == req.userId) {
+            sharePosts = await User.findById(user_id)
+                .populate({
+                    'path': 'share.post_id',
+                    'select': '-password -email',
+                    'populate': {
+                        'path': 'user_id',
+                        'select': '-password -email',
+                    }
+                })
+        } else {
+            sharePosts = await User.findById({
+                _id: user_id,
+                share: { $elemMatch: { status: 'public' } }
+            }).populate({
+                'path': 'share.post_id',
                 'select': '-password -email',
                 'populate': {
                     'path': 'user_id',
                     'select': '-password -email',
                 }
             })
+        }
         
         res.status(200).json({
             message: "User share posts fetched successfully",
             metadata: sharePosts.share,
+        });
+    } catch(err) {
+        next(err);
+    }
+}
+
+const publicOrPrivateSharePost = async (req, res, next) => {
+    try {
+        const { post_id } = req.params;
+        const { status } = req.body;
+        const user_id = req.userId;
+
+        const checkPost = await Post.findById({ _id: post_id });
+        if(!checkPost) {
+            return res.status(404).json({
+                message: "Post not found",
+            });
+        }
+
+        await User.updateOne({
+            _id: user_id,
+            'share.post_id': post_id,
+        }, {
+            $set: {
+                'share.$.status': status,
+            }
+        })
+
+        await redisClient.del(`post:${post_id}`);
+
+        res.status(200).json({
+            message: "Update share post status successfully ",
         });
     } catch(err) {
         next(err);
@@ -390,6 +437,7 @@ module.exports = {
     deletePost,
     likeOrUnlikePost,
     sharePost,
+    publicOrPrivateSharePost,
     createReply,
     updateReply,
     deleteReply,

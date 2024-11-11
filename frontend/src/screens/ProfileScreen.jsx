@@ -16,7 +16,8 @@ const ProfileScreen = ({navigation}) => {
   const [followers, setFollowers] = useState();
   const [posts, setPosts] = useState([]);
   const [userData, setUserData] = useState();
-  const [sharedPosts, setSharedPosts] = useState([]);
+  const [sharedPosts, setSharedPosts] = useState([{}]);
+  const [statusSharePost, setStatusSharePost] = useState('');
   const [activeTab, setActiveTab] = useState('Threads'); // Default tab
   const dispatch = useDispatch();
 

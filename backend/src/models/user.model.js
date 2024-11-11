@@ -37,11 +37,20 @@ const userSchema = new Schema({
     ref: "User",
     default: [],
   },
-  share: {
-    type: [Types.ObjectId],
-    ref: "Post",
-    default: [],
-  }
+  share: [ // Array of post with status
+    {
+      post_id: {
+        type: Types.ObjectId,
+        ref: "Post",
+        required: true,
+      },
+      status: {
+        type: String,
+        enum: ["public", "private"],
+        default: "public",
+      }
+    }
+  ]
 });
 
 module.exports = model("User", userSchema);
