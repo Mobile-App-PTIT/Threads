@@ -392,7 +392,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-[70px]">
+          className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-20">
           {mediaFiles.map((file, index) => {
             const mediaType = file.type.split('/')[0];
             if (mediaType === 'image') {

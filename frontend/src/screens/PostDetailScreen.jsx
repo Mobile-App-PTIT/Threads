@@ -380,7 +380,7 @@ const PostDetailsScreen = ({navigation, route}) => {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-[70px]">
+          className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-20">
           {mediaFiles.map((file, index) => (
             <View key={index} className="mr-2 relative">
               <Image
