@@ -174,31 +174,6 @@ const getUserFollowing = async (req, res, next) => {
   }
 };
 
-// get all followers and following of a user
-const getUserFollowerAndFollowing = async (req, res, next) => {
-  try {
-    const userId = req.userId;
-
-    const user = await User.findById(userId)
-      .select('followers following')
-      .populate('followers', 'name image')
-      .populate('following', 'name image');
-
-    if (!user) {
-      return res.status(404).json({
-        message: 'User not found'
-      });
-    }
-
-    res.status(200).json({
-      followers: user.followers,
-      following: user.following
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const FollowOrUnfollowUser = async (req, res, next) => {
   try {
     const user_id = req.userId;

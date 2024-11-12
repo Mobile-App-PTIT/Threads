@@ -5,9 +5,6 @@ const { isAuth } = require('../middleware/privilege');
 
 const router = express.Router();
 
-// get user's messages
-router.get('/messages', isAuth, userController.getUserFollowerAndFollowing);
-
 router.get('/:user_id', userController.getUserInfo);
 router.get('/', userController.getAllUserInfo);
 router.patch('/:user_id', isAuth, upload.single('avatar'), userController.updateUserInfo);
