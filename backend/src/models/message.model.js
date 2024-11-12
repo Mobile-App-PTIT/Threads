@@ -14,7 +14,7 @@ const messageSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['sent', 'delivered', 'read'],
+    enum: ['sent', 'read'],
     required: true
   },
   sender_id: {
@@ -26,6 +26,14 @@ const messageSchema = new Schema({
     type: Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+    required: true
+  },
+  seenAt: {
+    type: Date
   }
 });
 
