@@ -9,24 +9,24 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import FontAwesome5Brands from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import {useSelector} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
 import SharePopup from '../components/SharePopup';
-import { SocketContext } from '../components/SocketContext';
+import {SocketContext} from '../components/SocketContext';
 
 const loader = require('../../assets/loader.json');
 
 const HomeScreen = props => {
   const navigation = useNavigation();
-  const { user } = useSelector(state => state.user);
+  const {user} = useSelector(state => state.user);
   const [posts, setPosts] = useState([]);
   const [following, setFollowing] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +35,7 @@ const HomeScreen = props => {
   const [extraPaddingTop] = useState(new Animated.Value(0));
   const [isSharePopupVisible, setSharePopupVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
-  const { notifyOnlineStatus } = useContext(SocketContext);
+  const {notifyOnlineStatus} = useContext(SocketContext);
 
   const refreshingHeight = 100;
   const lottieViewRef = useRef(null);
@@ -54,8 +54,8 @@ const HomeScreen = props => {
       const response = await axios.get(`${uri}/post`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
       setPosts(response.data.metadata);
       setIsLoading(false);
@@ -74,9 +74,9 @@ const HomeScreen = props => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+            'Content-Type': 'application/json',
+          },
+        },
       );
       console.log(response.data);
       setFollowing(response.data.following.map(f => f._id));
@@ -91,16 +91,16 @@ const HomeScreen = props => {
   }, []);
 
   const onScroll = event => {
-    const { nativeEvent } = event;
-    const { contentOffset } = nativeEvent;
-    const { y } = contentOffset;
+    const {nativeEvent} = event;
+    const {contentOffset} = nativeEvent;
+    const {y} = contentOffset;
     setOffsetY(y);
   };
 
   const onScrollEndDrag = event => {
-    const { nativeEvent } = event;
-    const { contentOffset } = nativeEvent;
-    const { y } = contentOffset;
+    const {nativeEvent} = event;
+    const {contentOffset} = nativeEvent;
+    const {y} = contentOffset;
     setOffsetY(y);
   };
 
@@ -125,22 +125,22 @@ const HomeScreen = props => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+            'Content-Type': 'application/json',
+          },
+        },
       );
 
       setPosts(prevPosts =>
         prevPosts.map((post, i) =>
           i === index
             ? {
-              ...post,
-              likes: liked
-                ? post.likes.filter(id => id !== user._id)
-                : [...post.likes, user._id]
-            }
-            : post
-        )
+                ...post,
+                likes: liked
+                  ? post.likes.filter(id => id !== user._id)
+                  : [...post.likes, user._id],
+              }
+            : post,
+        ),
       );
     } catch (error) {
       console.error('Error liking/unliking post:', error);
@@ -156,15 +156,15 @@ const HomeScreen = props => {
         {
           headers: {
             Authorization: `Bearer ${await AsyncStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        }
+            'Content-Type': 'application/json',
+          },
+        },
       );
       const isFollowing = following.includes(id);
       setFollowing(prevFollowing =>
         isFollowing
           ? prevFollowing.filter(userId => userId !== id)
-          : [...prevFollowing, id]
+          : [...prevFollowing, id],
       );
     } catch (error) {
       console.error('Error following user:', error);
@@ -177,7 +177,7 @@ const HomeScreen = props => {
         <View className="flex flex-row justify-center items-center pt-5">
           <Image
             source={require('../../assets/images/white.png')}
-            style={{ width: 40, height: 40 }}
+            style={{width: 40, height: 40}}
           />
           <TouchableOpacity
             onPress={() => props.navigation.navigate('ListMessageScreen')}
@@ -196,10 +196,10 @@ const HomeScreen = props => {
             <Image
               source={
                 user?.avatar
-                  ? { uri: user?.avatar }
+                  ? {uri: user?.avatar}
                   : require('../../assets/images/avatar.jpg')
               }
-              style={{ width: 40, height: 40, borderRadius: 100 }}
+              style={{width: 40, height: 40, borderRadius: 100}}
             />
             <View className="flex flex-col gap-6">
               <View>
@@ -231,7 +231,7 @@ const HomeScreen = props => {
         <FlatList
           data={posts}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item, index }) => (
+          renderItem={({item, index}) => (
             <View className="p-[15px] border-b border-gray-700">
               <View className="relative">
                 <View className="flex-row w-full">
@@ -245,17 +245,22 @@ const HomeScreen = props => {
                       <Image
                         source={
                           item?.user_id?.avatar
-                            ? { uri: item.user_id.avatar }
+                            ? {uri: item.user_id.avatar}
                             : require('../../assets/images/avatar.jpg')
                         }
-                        style={{ width: 40, height: 40, borderRadius: 100 }}
+                        style={{width: 40, height: 40, borderRadius: 100}}
                       />
                     </TouchableOpacity>
 
                     <View className="pl-3 w-[70%]">
-                      <Text className="text-white font-[500] text-[16px]">
-                        {item?.user_id?.name || 'Unknown User'}
-                      </Text>
+                      <TouchableOpacity onPress={() => {props.navigation.navigate('Profile', {
+                        user_id: item?.user_id?._id
+                      })}}>
+                        <Text className="text-white font-[500] text-[16px]">
+                          {item?.user_id?.name || 'Unknown User'}
+                        </Text>
+                      </TouchableOpacity>
+
                       <Text className="text-gray-400 text-[12px]">
                         {item?.createdAt
                           ? getTimeDuration(item?.createdAt)
@@ -268,17 +273,19 @@ const HomeScreen = props => {
                   </View>
                 </View>
                 {Array.isArray(item?.media) && item.media.length > 0 ? (
-                  <ScrollView horizontal className="ml-[50px] my-3 flex flex-row">
+                  <ScrollView
+                    horizontal
+                    className="ml-[50px] my-3 flex flex-row">
                     {item.media.map((img, idx) => (
                       <Image
                         key={idx}
-                        source={{ uri: img }}
+                        source={{uri: img}}
                         style={{
                           aspectRatio: 1,
                           borderRadius: 10,
                           width: 320,
                           height: 320,
-                          marginRight: 20
+                          marginRight: 20,
                         }}
                         resizeMode="cover"
                       />
@@ -314,7 +321,7 @@ const HomeScreen = props => {
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('PostDetailScreen', {
-                        post_id: item._id
+                        post_id: item._id,
                       })
                     }
                     className="flex-row items-center mr-4">

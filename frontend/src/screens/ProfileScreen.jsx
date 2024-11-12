@@ -11,7 +11,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Reposts from '../components/Reposts';
 
-const ProfileScreen = ({navigation}) => {
+const ProfileScreen = ({navigation, route}) => {
+  const {user_id} = route.params || {};
   const {user} = useSelector(state => state.user);
   const [followers, setFollowers] = useState();
   const [posts, setPosts] = useState([]);
@@ -21,11 +22,14 @@ const ProfileScreen = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('Threads'); // Default tab
   const dispatch = useDispatch();
 
+  const currentUserId = user_id || user._id;
+  console.log('currentUserId', currentUserId, user_id, user._id);
+  
   useFocusEffect(
     useCallback(() => {
       const getUserInfo = async () => {
         try {
-          const response = await axios.get(`${uri}/user/${user._id}`);
+          const response = await axios.get(`${uri}/user/${currentUserId}`);
           setUserData(response.data.metadata);
           setFollowers(response.data.metadata.followers.length);
         } catch (error) {
@@ -34,7 +38,7 @@ const ProfileScreen = ({navigation}) => {
       };
 
       getUserInfo();
-    }, [user]),
+    }, [user_id, user._id, navigation]),
   );
 
   const fetchSharedPosts = async () => {
@@ -63,7 +67,7 @@ const ProfileScreen = ({navigation}) => {
     } catch (error) {
       console.error('Error fetching owner posts:', error);
     }
-  }
+  };
 
   const handleTabPress = tabName => {
     setActiveTab(tabName);
@@ -152,18 +156,33 @@ const ProfileScreen = ({navigation}) => {
         <Text className="text-white">{followers} Followers</Text>
       </View>
 
-      <View className="flex-row items-center justify-between m-5 mt-7">
-        <TouchableOpacity
-          className="w-[45%] border border-gray-500 h-[40] rounded-xl"
-          onPress={() => navigation.navigate('EditProfile')}>
-          <Text className="text-white text-center pt-2">Edit Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="w-[45%] border border-gray-500 h-[40] rounded-xl"
-          onPress={logoutHandler}>
-          <Text className="text-white text-center pt-2">Log out</Text>
-        </TouchableOpacity>
-      </View>
+      {user_id === user._id ? (
+        <View className="flex-row items-center justify-between m-5 mt-7">
+          <TouchableOpacity
+            className="w-[45%] border border-gray-500 h-[40] rounded-xl"
+            onPress={() => navigation.navigate('EditProfile')}>
+            <Text className="text-white text-center pt-2">Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="w-[45%] border border-gray-500 h-[40] rounded-xl"
+            onPress={logoutHandler}>
+            <Text className="text-white text-center pt-2">Log out</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View className="flex-row items-center justify-between m-5 mt-7">
+          <TouchableOpacity
+            className="w-[45%] border border-gray-500 h-[40] rounded-xl"
+            onPress={() => navigation.navigate('EditProfile')}>
+            <Text className="text-white text-center pt-2">Follow</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="w-[45%] border border-gray-500 h-[40] rounded-xl"
+            onPress={logoutHandler}>
+            <Text className="text-white text-center pt-2">Mention</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View
         className="border-b border-gray-500"

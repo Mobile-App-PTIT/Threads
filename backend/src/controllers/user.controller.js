@@ -44,13 +44,13 @@ const getUserInfo = async (req, res, next) => {
     const { user_id } = req.params;
 
     // Check if user data is cached in Redis
-    const cachedUser = await redisClient.get(`user:${user_id}`);
-    if (cachedUser) {
-      return res.status(200).json({
-        message: 'User info fetched successfully (from cache)',
-        metadata: JSON.parse(cachedUser)
-      });
-    }
+    // const cachedUser = await redisClient.get(`user:${user_id}`);
+    // if (cachedUser) {
+    //   return res.status(200).json({
+    //     message: 'User info fetched successfully (from cache)',
+    //     metadata: JSON.parse(cachedUser)
+    //   });
+    // }
 
     const user = await User.findById({
       _id: user_id
@@ -59,7 +59,7 @@ const getUserInfo = async (req, res, next) => {
       .lean();
 
     // Cache the user data in Redis
-    await redisClient.set(`user:${user_id}`, JSON.stringify(user), { EX: 60 });
+    // await redisClient.set(`user:${user_id}`, JSON.stringify(user), { EX: 60 });
 
     res.status(200).json({
       message: 'User info fetched successfully',
