@@ -17,39 +17,30 @@ const ProfileScreen = ({navigation}) => {
   const [posts, setPosts] = useState([]);
   const [userData, setUserData] = useState();
   const [sharedPosts, setSharedPosts] = useState([{}]);
-  const [statusSharePost, setStatusSharePost] = useState('');
+  const [ownerPosts, setOwnerPosts] = useState([{}]);
   const [activeTab, setActiveTab] = useState('Threads'); // Default tab
   const dispatch = useDispatch();
 
   useFocusEffect(
     useCallback(() => {
-      const followerCount = async () => {
-        try {
-          const response = await axios.get(`${uri}/user/followers/${user._id}`);
-          setFollowers(response.data.totalFollowers);
-        } catch (error) {
-          console.log(error);
-        }
-      };
-
       const getUserInfo = async () => {
         try {
           const response = await axios.get(`${uri}/user/${user._id}`);
           setUserData(response.data.metadata);
+          setFollowers(response.data.metadata.followers.length);
         } catch (error) {
           console.log(error);
         }
       };
 
       getUserInfo();
-      followerCount();
     }, [user]),
   );
 
   const fetchSharedPosts = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await axios.get(`${uri}/post/share/${user._id}`, {
+      const response = await axios.get(`${uri}/post/user/${user._id}/share`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -60,10 +51,26 @@ const ProfileScreen = ({navigation}) => {
     }
   };
 
+  const fetchOwnerPosts = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`${uri}/post/user/${user._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setOwnerPosts(response.data.metadata);
+    } catch (error) {
+      console.error('Error fetching owner posts:', error);
+    }
+  }
+
   const handleTabPress = tabName => {
     setActiveTab(tabName);
     if (tabName === 'Reposts') {
       fetchSharedPosts();
+    } else if (tabName === 'Threads') {
+      fetchOwnerPosts();
     }
   };
 

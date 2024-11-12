@@ -28,7 +28,7 @@ const updateUserInfo = async (req, res, next) => {
       { new: true }
     );
 
-    await redisClient.set(`user:${user_id}`, JSON.stringify(user));
+    await redisClient.set(`user:${user_id}`, JSON.stringify(user), { EX: 60 });
 
     res.status(200).json({
       message: 'User info updated successfully',
@@ -59,7 +59,7 @@ const getUserInfo = async (req, res, next) => {
       .lean();
 
     // Cache the user data in Redis
-    await redisClient.set(`user:${user_id}`, JSON.stringify(user));
+    await redisClient.set(`user:${user_id}`, JSON.stringify(user), { EX: 60 });
 
     res.status(200).json({
       message: 'User info fetched successfully',
@@ -120,8 +120,6 @@ const getUserReplied = async (req, res, next) => {
         'select': '_id name avatar'
       }
     }).sort({ createdAt: -1 }).lean();
-
-    console.log(replies);
 
     res.status(200).json({
       message: 'User replies fetched successfully',
@@ -230,6 +228,5 @@ module.exports = {
   getUserReplied,
   getUserFollowers,
   getUserFollowing,
-  getUserFollowerAndFollowing,
   FollowOrUnfollowUser
 };

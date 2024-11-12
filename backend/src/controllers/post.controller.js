@@ -3,7 +3,7 @@ const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
 const Notification = require('../models/notification.model');
 const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
-const redisClient = require('../configs/redis');
+// const redisClient = require('../configs/redis');
 
 // Post 
 const createPost = async (req, res, next) => {
@@ -34,9 +34,6 @@ const createPost = async (req, res, next) => {
             user_id,
         });
 
-        // Set new post in Redis cache
-        await redisClient.set(`post:${newPost._id}`, JSON.stringify(newPost), { EX: 60 });
-
         res.status(201).json({
             message: "Post created successfully",
             metadata: newPost,
@@ -49,14 +46,6 @@ const createPost = async (req, res, next) => {
 const getPost = async (req, res, next) => {
     try {
         const { post_id } = req.params;
-
-        const cachedPost = await redisClient.get(`post:${post_id}`);
-        if (cachedPost) {
-            return res.status(200).json({
-                message: "Post fetched successfully (from cache)",
-                metadata: JSON.parse(cachedPost),
-            });
-        }
 
         const post = await Post.findById(post_id)
             .populate({
@@ -77,8 +66,6 @@ const getPost = async (req, res, next) => {
             });
         }
 
-        await redisClient.set(`post:${post_id}`, JSON.stringify(post), { EX: 60 });
-
         res.status(200).json({
             message: "Post fetched successfully",
             metadata: post,
@@ -91,9 +78,11 @@ const getPost = async (req, res, next) => {
 const getAllUserCreatePost = async (req, res, next) => {
     try {
       const { user_id } = req.params;
-  
+      if(!user_id) return res.status(400).json({ message: "User id is required" });
+        
       const posts = await Post.find({
-        user_id,
+        user_id: user_id,
+        status: 'public'
       }).sort({ createdAt : -1 }).lean();
 
       res.status(200).json({
@@ -141,9 +130,6 @@ const updatePost = async (req, res, next) => {
             { new: true }
         );
 
-        // Update the cache with the new post data
-        await redisClient.set(`post:${post_id}`, JSON.stringify(post), { EX: 60 });
-
         res.status(200).json({
             message: "Post updated successfully",
             metadata: post,
@@ -160,9 +146,6 @@ const deletePost = async (req, res, next) => {
 
         await Reply.deleteMany({ post_id });
         await deleteMedia(post.media);
-
-        // Delete the post from Redis cache
-        await redisClient.del(`post:${post_id}`);
 
         res.status(200).json({
             message: "Post deleted successfully",
@@ -195,9 +178,6 @@ const likeOrUnlikePost = async (req, res, next) => {
         // Notify the post owner about the like/unlike
         await notifyPostOwner({ post_id, type: hasLiked ? "unlike" : "like" });
 
-        // Invalidate the cached post to reflect the new like/unlike status
-        await redisClient.del(`post:${post_id}`);
-
         res.status(200).json({
             message: "Post liked/unliked successfully",
         });
@@ -217,8 +197,6 @@ const sharePost = async (req, res, next) => {
         }, {
             $addToSet: { share: { post_id } }
         })
-
-        await redisClient.del(`post:${post_id}`);
 
         res.status(200).json({
             message: "Share successful"
@@ -288,8 +266,6 @@ const publicOrPrivateSharePost = async (req, res, next) => {
             }
         })
 
-        await redisClient.del(`post:${post_id}`);
-
         res.status(200).json({
             message: "Update share post status successfully ",
         });
@@ -337,9 +313,6 @@ const createReply = async (req, res, next) => {
         // Notify the post owner about the new reply
         await notifyPostOwner({ post_id, type: "comment" });
 
-        // Invalidate cache as new reply is added
-        await redisClient.del(`post:${post_id}`);
-
         res.status(201).json({
             message: "Reply created successfully",
             metadata: reply,
@@ -367,9 +340,6 @@ const updateReply = async (req, res, next) => {
             { new: true }
         );
 
-        // Invalidate cache for the post associated with the updated reply
-        await redisClient.del(`post:${reply.post_id}`);
-
         res.status(200).json({
             message: "Reply updated successfully",
             metadata: reply,
@@ -390,9 +360,6 @@ const deleteReply = async (req, res, next) => {
         );
 
         await deleteMedia(reply.media);
-
-        // Invalidate cache for the post associated with the deleted reply
-        await redisClient.del(`post:${reply.post_id}`);
 
         res.status(200).json({
             message: "Reply deleted successfully",
@@ -420,8 +387,6 @@ const notifyPostOwner = async ({ post_id, type }) => {
         // Save notification to database
         await Notification.create(notificationData);
 
-        // Publish notification to Redis
-        await redisClient.publish(`notifications:${ownerId}`, JSON.stringify(notificationData));
     } catch(err) {
         console.error("Error in createNotification:", err);
     }

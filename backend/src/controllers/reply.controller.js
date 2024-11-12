@@ -1,6 +1,6 @@
 const Reply = require('../models/reply.model');
 const { uploadMedia } = require('../configs/cloudinary');
-const redisClient = require('../configs/redis');
+// const redisClient = require('../configs/redis');
 
 const createReplyToReply = async (req, res, next) => {
     try {
@@ -67,7 +67,6 @@ const getRepliesOfReply = async (req, res, next) => {
         }).lean();
         console.log(replies.replies);
 
-        await redisClient.set(`reply:${reply_id}`, JSON.stringify(replies));
         res.status(200).json({
             message: "Replies fetched successfully",
             metadata: replies,
