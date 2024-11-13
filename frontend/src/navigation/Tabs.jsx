@@ -5,12 +5,14 @@ import SearchScreen from '../screens/SearchScreen';
 import PostScreen from '../screens/PostScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 
 const Tab = createBottomTabNavigator();
 
 const Tabs = (props) => {
+  const {user} = useSelector(state => state.user);
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -82,16 +84,28 @@ const Tabs = (props) => {
           ),
         })}
       />
-       <Tab.Screen
+      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={({route}) => ({
-          tabBarIcon: ({focused}) => (
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            e.preventDefault(); 
+            navigation.navigate('Profile', {
+              user_id: undefined, 
+              from: 'tab', 
+            });
+          },
+        })}
+        options={({ route }) => ({
+          unmountOnBlur: true,
+          tabBarIcon: ({ focused }) => (
             <Image
               source={{
-                uri: focused ? 'https://cdn-icons-png.flaticon.com/512/14673/14673907.png' : 'https://cdn-icons-png.flaticon.com/512/17123/17123228.png'
+                uri: focused
+                  ? 'https://cdn-icons-png.flaticon.com/512/14673/14673907.png'
+                  : 'https://cdn-icons-png.flaticon.com/512/17123/17123228.png',
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}    
+              style={{ width: 30, height: 30, tintColor: focused ? 'white' : 'gray' }}
             />
           ),
         })}

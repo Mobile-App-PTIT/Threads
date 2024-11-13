@@ -253,9 +253,14 @@ const HomeScreen = props => {
                     </TouchableOpacity>
 
                     <View className="pl-3 w-[70%]">
-                      <TouchableOpacity onPress={() => {props.navigation.navigate('Profile', {
-                        user_id: item?.user_id?._id
-                      })}}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          props.navigation.navigate('Profile', {
+                            user_id: item?.user_id?._id,
+                            from: 'onClick', 
+                          });
+                        }}
+                      >
                         <Text className="text-white font-[500] text-[16px]">
                           {item?.user_id?.name || 'Unknown User'}
                         </Text>

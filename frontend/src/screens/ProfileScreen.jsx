@@ -12,7 +12,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Reposts from '../components/Reposts';
 
 const ProfileScreen = ({navigation, route}) => {
-  const {user_id} = route.params || {};
   const {user} = useSelector(state => state.user);
   const [followers, setFollowers] = useState();
   const [posts, setPosts] = useState([]);
@@ -22,23 +21,23 @@ const ProfileScreen = ({navigation, route}) => {
   const [activeTab, setActiveTab] = useState('Threads'); // Default tab
   const dispatch = useDispatch();
 
-  const currentUserId = user_id || user._id;
-  console.log('currentUserId', currentUserId, user_id, user._id);
+  const user_id = route.params?.from === 'onClick' ? route.params.user_id : undefined;
+  const currentUserId = user_id !== undefined ? user_id : user._id;
   
+  const getUserInfo = async () => {
+    try {
+      const response = await axios.get(`${uri}/user/${currentUserId}`);
+      setUserData(response.data.metadata);
+      setFollowers(response.data.metadata.followers.length);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
-      const getUserInfo = async () => {
-        try {
-          const response = await axios.get(`${uri}/user/${currentUserId}`);
-          setUserData(response.data.metadata);
-          setFollowers(response.data.metadata.followers.length);
-        } catch (error) {
-          console.log(error);
-        }
-      };
-
       getUserInfo();
-    }, [user_id, user._id, navigation]),
+    }, [currentUserId])
   );
 
   const fetchSharedPosts = async () => {
@@ -156,7 +155,7 @@ const ProfileScreen = ({navigation, route}) => {
         <Text className="text-white">{followers} Followers</Text>
       </View>
 
-      {user_id === user._id ? (
+      {currentUserId  === user._id ? (
         <View className="flex-row items-center justify-between m-5 mt-7">
           <TouchableOpacity
             className="w-[45%] border border-gray-500 h-[40] rounded-xl"
