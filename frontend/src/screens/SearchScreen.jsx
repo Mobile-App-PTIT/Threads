@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Text,
   View,
@@ -13,10 +13,10 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import uri from '../../redux/uri';
-import { useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 
-const SearchScreen = () => {
-  const { user } = useSelector((state) => state.user);
+const SearchScreen = ( {navigation}) => {
+  const {user} = useSelector(state => state.user);
   const [data, setData] = useState([]);
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ const SearchScreen = () => {
       });
 
       // Check if each user is in the current user's following list
-      const usersWithFollowStatus = response.data.metadata.map((item) => ({
+      const usersWithFollowStatus = response.data.metadata.map(item => ({
         ...item,
         following: user.following.includes(item._id),
       }));
@@ -50,11 +50,11 @@ const SearchScreen = () => {
     fetchUsers();
   }, []);
 
-  const handleSearch = (text) => {
+  const handleSearch = text => {
     setSearch(text);
     if (text.length > 0) {
-      const filteredUsers = data.filter((user) =>
-        user.name.toLowerCase().includes(text.toLowerCase())
+      const filteredUsers = data.filter(user =>
+        user.name.toLowerCase().includes(text.toLowerCase()),
       );
       setData(filteredUsers);
     } else {
@@ -65,17 +65,21 @@ const SearchScreen = () => {
   const handleFollow = async (userId, index) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      await axios.patch(`${uri}/user/follow/${userId}`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      await axios.patch(
+        `${uri}/user/follow/${userId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       // Update the 'followed' status of the user
-      setData((prevData) =>
+      setData(prevData =>
         prevData.map((user, i) =>
-          i === index ? { ...user, following: !user.following } : user
-        )
+          i === index ? {...user, following: !user.following} : user,
+        ),
       );
     } catch (error) {
       Alert.alert('Error', 'Failed to follow/unfollow user');
@@ -106,27 +110,27 @@ const SearchScreen = () => {
         <FlatList
           className="mt-5"
           data={data}
-          keyExtractor={(item) => item._id.toString()}
+          keyExtractor={item => item._id.toString()}
           showsVerticalScrollIndicator={false}
           refreshing={isLoading}
           onRefresh={fetchUsers}
-          renderItem={({ item, index }) => (
+          renderItem={({item, index}) => (
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('UserProfile', {
-                  item: item,
-                })
-              }
-              className="bg-zinc-900"
-            >
+              onPress={() => {
+                navigation.navigate('Profile', {
+                  user_id: item?._id,
+                  from: 'onClick',
+                });
+              }}
+              className="bg-zinc-900">
               <View className="flex-row my-3">
                 <Image
                   source={
                     item?.avatar
-                      ? { uri: item.avatar }
+                      ? {uri: item.avatar}
                       : require('../../assets/images/avatar.jpg')
                   }
-                  style={{ width: 40, height: 40, borderRadius: 100 }}
+                  style={{width: 40, height: 40, borderRadius: 100}}
                 />
                 <View className="w-[89%] flex-row justify-between border-b border-gray-700 pb-3">
                   <View>
@@ -149,8 +153,7 @@ const SearchScreen = () => {
                     <Text
                       className="pl-3 text-[14px] text-gray-400"
                       numberOfLines={1}
-                      ellipsizeMode="tail"
-                    >
+                      ellipsizeMode="tail">
                       {item?.subname || 'No subname'}
                     </Text>
                     <Text className="pl-3 mt-3 text-[14px] text-white">
@@ -161,9 +164,8 @@ const SearchScreen = () => {
                     {item.following ? null : (
                       <TouchableOpacity
                         onPress={() => handleFollow(item._id, index)}
-                        className="rounded-[8px] w-[100px] flex-row justify-center items-center h-[35px] border border-slate-700"
-                      >
-                        <Text className="text-white">Follows</Text>
+                        className="rounded-[8px] w-[100px] flex-row justify-center items-center h-[35px] border border-slate-700">
+                        <Text className="text-white">Follow</Text>
                       </TouchableOpacity>
                     )}
                   </View>
