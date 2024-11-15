@@ -3,7 +3,7 @@ const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
 const Notification = require('../models/notification.model');
 const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
-// const redisClient = require('../configs/redis');
+const redisClient = require('../configs/redis');
 
 // Post 
 const createPost = async (req, res, next) => {
@@ -77,22 +77,25 @@ const getPost = async (req, res, next) => {
 
 const getAllUserCreatePost = async (req, res, next) => {
     try {
-      const { user_id } = req.params;
-      if(!user_id) return res.status(400).json({ message: "User id is required" });
-        
-      const posts = await Post.find({
-        user_id: user_id,
-        status: 'public'
-      }).sort({ createdAt : -1 }).lean();
+        const { user_id } = req.params;
+        if(!user_id) return res.status(400).json({ message: "User id is required" });
 
-      res.status(200).json({
-        message: "Post fetched successfully",
-        metadata: posts,
-      })
+        const allPosts = await Post.find({ status: 'public' })
+            .populate({
+                'path': 'user_id',
+                'select': '-password -email',
+            })
+            .lean();
+        const matchingPosts = allPosts.filter(post => post.user_id._id.toString() === user_id);
+
+        res.status(200).json({
+            message: "All user create posts fetched successfully",
+            metadata: matchingPosts,
+        });
     } catch (err) {
       next(err);
     }
-  }
+}
 
 const getAllPosts = async (req, res, next) => {
     try {
@@ -387,6 +390,8 @@ const notifyPostOwner = async ({ post_id, type }) => {
         // Save notification to database
         await Notification.create(notificationData);
 
+        // Save notification to redis
+        await redisClient.publish(`notifications:${ownerId}`, JSON.stringify(notificationData));
     } catch(err) {
         console.error("Error in createNotification:", err);
     }

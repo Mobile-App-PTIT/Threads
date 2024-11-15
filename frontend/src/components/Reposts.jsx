@@ -6,7 +6,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
 
-const Reposts = ({ data, toggleLike, navigation, activeTab, ListHeaderComponent, user, updateStatus }) => {
+const Reposts = ({ data, toggleLike, navigation, activeTab, ListHeaderComponent, user }) => {
   const [statusList, setStatusList] = useState(data.map(item => item?.status || 'public'));
 
   const handleToggleStatus = async (index, post_id) => {
@@ -31,90 +31,95 @@ const Reposts = ({ data, toggleLike, navigation, activeTab, ListHeaderComponent,
     <FlatList
       data={data}
       ListHeaderComponent={ListHeaderComponent}
-      keyExtractor={(item) => item?.post_id?._id?.toString() || item?._id?.toString()}
-      renderItem={({ item, index }) => (
-        <View className="bg-zinc-900 p-5 mb-5 border border-b border-gray-700 rounded-lg">
-          {/* User info */}
-          <View className="flex-row items-center mb-3">
-            <Image
-              source={{
-                uri:
-                  item?.post_id?.user_id?.avatar ||
-                  'https://example.com/default-avatar.jpg',
-              }}
-              style={{ width: 40, height: 40, borderRadius: 20 }}
-            />
-            <View className="ml-3">
-              <Text className="text-white font-bold">
-                {item?.post_id?.user_id?.name || 'Unknown User'}
-              </Text>
-              <Text className="text-gray-500 text-sm">
-                {item?.post_id?.createdAt ? getTimeDuration(item.post_id.createdAt) : ''}
-              </Text>
+      keyExtractor={(item) => item?._id?.toString()}
+      renderItem={({ item, index }) => {
+        const post = activeTab === 'Reposts' ? item.post_id : item;
+        return (
+          <View className="bg-zinc-900 p-5 mb-5 border border-b border-gray-700 rounded-lg">
+            {/* User info */}
+            <View className="flex-row items-center mb-3">
+              <Image
+                source={{
+                  uri:
+                    post?.user_id?.avatar ||
+                    'https://example.com/default-avatar.jpg',
+                }}
+                style={{ width: 40, height: 40, borderRadius: 20 }}
+              />
+              <View className="ml-3">
+                <Text className="text-white font-bold">
+                  {post?.user_id?.name || 'Unknown User'}
+                </Text>
+                <Text className="text-gray-500 text-sm">
+                  {post?.createdAt ? getTimeDuration(post.createdAt) : ''}
+                </Text>
+              </View>
+              {(
+                <TouchableOpacity onPress={() => handleToggleStatus(index, post?._id)}>
+                  <Ionicons
+                    name={statusList[index] === 'public' ? 'lock-open-outline' : 'lock-closed-outline'}
+                    size={20}
+                    color="white"
+                    style={{ marginLeft: 10 }}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
-            <TouchableOpacity onPress={() => handleToggleStatus(index, item?.post_id?._id)}>
-              <Ionicons
-                name={statusList[index] === 'public' ? 'lock-open-outline' : 'lock-closed-outline'}
-                size={20}
-                color="white"
-                style={{ marginLeft: 10 }}
-              />
-            </TouchableOpacity>
-          </View>
 
-          {/* Post title and status */}
-          <Text className="text-white mb-3 font-semibold">{item?.post_id?.title || 'No Title'}</Text>
+            {/* Post title and status */}
+            <Text className="text-white mb-3 font-semibold">{post?.title || 'No Title'}</Text>
 
-          {/* Post image */}
-          {item?.post_id?.media?.length > 0 && (
-            <ScrollView horizontal>
-              {item.post_id.media.map((media, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: media }}
-                  style={{
-                    width: 375,
-                    height: 400,
-                    borderRadius: 10,
-                    marginRight: 20,
-                  }}
-                  resizeMode="cover"
+            {/* Post image */}
+            {post?.media?.length > 0 && (
+              <ScrollView horizontal>
+                {post.media.map((media, idx) => (
+                  <Image
+                    key={idx}
+                    source={{ uri: media }}
+                    style={{
+                      width: 375,
+                      height: 400,
+                      borderRadius: 10,
+                      marginRight: 20,
+                    }}
+                    resizeMode="cover"
+                  />
+                ))}
+              </ScrollView>
+            )}
+
+            <View className="flex-row gap-2 items-center mt-5">
+              <TouchableOpacity
+                onPress={() =>
+                  toggleLike(post._id, post?.likes?.includes(user?._id), index)
+                }
+                className="flex-row items-center mr-4">
+                <Ionicons
+                  name={post?.likes?.includes(user?._id) ? 'heart' : 'heart-outline'}
+                  size={20}
+                  color={post?.likes?.includes(user?._id) ? 'red' : 'white'}
                 />
-              ))}
-            </ScrollView>
-          )}
+                <Text className="text-[16px] text-white ml-2">
+                  {post?.likes?.length || 0} {post?.likes?.length > 1 ? 'Likes' : 'Like'}
+                </Text>
+              </TouchableOpacity>
 
-          <View className="flex-row gap-2 items-center mt-5">
-            <TouchableOpacity
-              onPress={() =>
-                toggleLike(item._id, item?.likes?.includes(user?._id), index)
-              }
-              className="flex-row items-center mr-4">
-              <Ionicons
-                name={item?.likes?.includes(user?._id) ? 'heart' : 'heart-outline'}
-                size={20}
-                color={item?.likes?.includes(user?._id) ? 'red' : 'white'}
-              />
-              <Text className="text-[16px] text-white ml-2">
-                {item?.post_id?.likes?.length || 0} {item?.post_id?.likes?.length > 1 ? 'Likes' : 'Like'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('PostDetailScreen', {
-                  post_id: item?.post_id?._id,
-                })
-              }
-              className="flex-row items-center mr-4">
-              <Ionicons name="chatbubble-outline" size={20} color="white" />
-              <Text className="text-[16px] text-white ml-2">
-                {item?.post_id?.replies?.length || 0} {item?.post_id?.replies?.length > 1 ? 'Replies' : 'Reply'}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('PostDetailScreen', {
+                    post_id: post?._id,
+                  })
+                }
+                className="flex-row items-center mr-4">
+                <Ionicons name="chatbubble-outline" size={20} color="white" />
+                <Text className="text-[16px] text-white ml-2">
+                  {post?.replies?.length || 0} {post?.replies?.length > 1 ? 'Replies' : 'Reply'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      )}
+        );
+      }}
       ListEmptyComponent={
         <Text className="text-white mt-5 mx-5">Nothing here</Text>
       }
