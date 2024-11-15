@@ -114,7 +114,10 @@ const getUserReplied = async (req, res, next) => {
     const replies = await Reply.find({
       user_id
     }).populate({
-      'path': 'replies',
+      'path': 'user_id',
+      'select': '_id name avatar'
+    }).populate({
+      'path': 'post_id',
       'populate': {
         'path': 'user_id',
         'select': '_id name avatar'

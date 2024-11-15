@@ -10,6 +10,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Reposts from '../components/Reposts';
+import UserReplied from '../components/UserReplied';
 
 const ProfileScreen = ({ navigation, route }) => {
   const { user } = useSelector(state => state.user);
@@ -17,6 +18,7 @@ const ProfileScreen = ({ navigation, route }) => {
   const [userData, setUserData] = useState();
   const [sharedPosts, setSharedPosts] = useState([]);
   const [ownerPosts, setOwnerPosts] = useState([]);
+  const [ownerRepliedPosts, setOwnerRepliedPosts] = useState([]);
   const [activeTab, setActiveTab] = useState('Threads'); // Default tab
   const dispatch = useDispatch();
 
@@ -61,6 +63,20 @@ const ProfileScreen = ({ navigation, route }) => {
     }
   };
 
+  const fetchOwnerRepliedPosts = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`${uri}/user/replied/${currentUserId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setOwnerRepliedPosts(response.data.metadata);
+    } catch (error) {
+      console.error('Error fetching owner replied posts:', error);
+    }
+  };
+
   const toggleLike = async (postId, isLiked, index) => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -79,6 +95,8 @@ const ProfileScreen = ({ navigation, route }) => {
       getUserInfo();
       if (activeTab === 'Threads') {
         fetchOwnerPosts();
+      } else if (activeTab === 'Replies') {
+        fetchOwnerRepliedPosts();
       } else if (activeTab === 'Reposts') {
         fetchSharedPosts();
       }
@@ -91,6 +109,8 @@ const ProfileScreen = ({ navigation, route }) => {
       fetchSharedPosts();
     } else if (tabName === 'Threads') {
       fetchOwnerPosts();
+    } else if (tabName === 'Replies') {
+      fetchOwnerRepliedPosts();
     }
   };
 
@@ -209,14 +229,34 @@ const ProfileScreen = ({ navigation, route }) => {
   );
 
   return (
-    <Reposts
-      data={activeTab === 'Reposts' ? sharedPosts : ownerPosts}
-      user={user}
-      navigation={navigation}
-      activeTab={activeTab}
-      ListHeaderComponent={renderHeader}
-      toggleLike={toggleLike}
-    />
+    <View style={{ flex: 1 }}>
+      {activeTab === 'Threads' && (
+        <Reposts
+          data={ownerPosts}
+          user={user}
+          navigation={navigation}
+          activeTab={activeTab}
+          ListHeaderComponent={renderHeader}
+          toggleLike={toggleLike}
+        />
+      )}
+      {activeTab === 'Replies' && (
+        <UserReplied
+          replies={ownerRepliedPosts}
+          ListHeaderComponent={renderHeader}
+        />
+      )}
+      {activeTab === 'Reposts' && (
+        <Reposts
+          data={sharedPosts}
+          user={user}
+          navigation={navigation}
+          activeTab={activeTab}
+          ListHeaderComponent={renderHeader}
+          toggleLike={toggleLike}
+        />
+      )}
+    </View>
   );
 };
 
