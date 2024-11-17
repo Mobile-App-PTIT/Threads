@@ -1,21 +1,52 @@
 import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  TextInput,
-  Image,
+  ActivityIndicator,
   FlatList,
-  ScrollView,
+  Image,
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import {useEffect, useState} from 'react';
-import {messsagesData} from '../../assets';
+import { useContext, useEffect, useState } from 'react';
+import { messsagesData } from '../../assets';
+import { SocketContext } from '../components/SocketContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch, useSelector } from 'react-redux';
 
-const ListMessageScreen = ({navigation}) => {
+const ListMessageScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const { users, isLoading } = useSelector(state => state.message);
+  const { socket } = useContext(SocketContext);
   const [search, setSearch] = useState('');
-  const [data, setData] = useState(messsagesData);
+  // const [data, setData] = useState(users);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        socket.emit('getList', token);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+
+    socket.on('getFollowingAndFollowers', (data) => {
+      console.log('[Client] Get following and followers');
+      if (JSON.stringify(data) !== JSON.stringify(users)) {
+        dispatch({ type: 'getFollowingAndFollowersSuccess', payload: data });
+        console.log('Data:', data);
+      }
+    });
+
+    return () => {
+      socket.off('getFollowingAndFollowers');
+    };
+  }, [socket, dispatch]);
 
   const handleSearch = text => {
     setSearch(text);
@@ -24,19 +55,23 @@ const ListMessageScreen = ({navigation}) => {
         return item.fullName.toLowerCase().includes(text.toLowerCase());
       });
 
-      setData(filteredData);
+      // setData(filteredData);
     } else {
-      setData(messsagesData);
+      // setData(messsagesData);
     }
   };
 
-  const renderItem = ({item, index}) => {
+  const renderItem = ({ item, index }) => {
     return (
       <TouchableOpacity
         className="flex-row w-full items-center justify-between"
         key={index}
         onPress={() =>
-          navigation.navigate('ChatScreen', {userName: item.fullName})
+          navigation.navigate('ChatScreen', {
+            userId: item.id,
+            userName: item.fullName,
+            userImg: item.userImg
+          })
         }>
         {/*   style={[styles.userContainer, index % 2 !== 0 ? styles.background: null]} */}
         <View className="py-4">
@@ -44,7 +79,7 @@ const ListMessageScreen = ({navigation}) => {
             <View className="h-5 w-5 rounded-full bg-green-500 absolute top-4 right-0 z-50 border border-white"></View>
           )}
           <Image
-            source={item.userImg}
+            source={item.image ? { uri: item.image } : require('../../assets/images/avatar.jpg')}
             resizeMode="contain"
             className="h-20 w-20 rounded-full"
           />
@@ -54,11 +89,13 @@ const ListMessageScreen = ({navigation}) => {
             <Text className="text-gray-300 font-semibold mb-1 text-[14px]">
               {item.fullName}
             </Text>
-            <Text className="text-gray-500">{item.lastMessage}</Text>
+            <Text className="text-gray-500">
+              {item.lastMessage !== '' ? item.lastMessage : 'Start a new chat'}
+            </Text>
           </View>
           <View className="absolute right-[4px] items-center">
             <Text className="text-white text-[12px]">
-              {item.lastMessageTime}
+              {item.lastMessageTime !== '' ? item.lastMessageTime : ''}
             </Text>
           </View>
         </View>
@@ -90,11 +127,24 @@ const ListMessageScreen = ({navigation}) => {
         </View>
         {/* Render chat */}
         <View>
-          <FlatList
-            data={data}
-            showsVerticalScrollIndicator={false}
-            renderItem={renderItem}
-            keyExtractor={item => item.id.toString()}></FlatList>
+          {isLoading ? (
+            <View className="flex-1 flex-col justify-start items-center">
+              <ActivityIndicator size="large" color="#ffffff" />
+            </View>
+          ) : (
+            users.length === 0 ? (
+              <Text className="text-white text-center mt-5">
+                You don't have any followers or following yet!
+              </Text>
+            ) : (
+              <FlatList
+                data={users}
+                showsVerticalScrollIndicator={false}
+                renderItem={renderItem}
+                keyExtractor={item => item.id.toString()}
+              />
+            )
+          )}
         </View>
       </View>
     );
@@ -102,9 +152,7 @@ const ListMessageScreen = ({navigation}) => {
 
   return (
     <SafeAreaView className="flex-1 h-full bg-zinc-900 text-white">
-      <ScrollView>
-        <View className="p-5 items-center">{renderContent()}</View>
-      </ScrollView>
+      <View className="p-5 items-center">{renderContent()}</View>
     </SafeAreaView>
   );
 };
