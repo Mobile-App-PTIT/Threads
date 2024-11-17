@@ -6,28 +6,28 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const registerUser = (name, email, password) => async dispatch => {
   try {
     dispatch({
-      type: 'userRegisterRequest',
+      type: 'userRegisterRequest'
     });
 
     const config = {
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'
+      }
     };
 
-    const {data} = await axios.post(
+    const { data } = await axios.post(
       `${uri}/auth/signup`,
-      {name, email, password},
-      config,
+      { name, email, password },
+      config
     );
     dispatch({
-      type: 'userRegisterSuccess',
+      type: 'userRegisterSuccess'
     });
-   
+
   } catch (error) {
     dispatch({
       type: 'userRegisterFailed',
-      payload: error.data.response.message || 'Registration failed',
+      payload: error.data.response.message || 'Registration failed'
     });
   }
 };
@@ -36,22 +36,22 @@ export const registerUser = (name, email, password) => async dispatch => {
 export const loginUser = (email, password) => async dispatch => {
   try {
     dispatch({
-      type: "userLoginRequest",
-    })
+      type: 'userLoginRequest'
+    });
     const config = {
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'
+      }
     };
-    const {data} = await axios.post(
+    const { data } = await axios.post(
       `${uri}/auth/login`,
-      {email, password},
-      config,
+      { email, password },
+      config
     );
-    console.log(data.accessToken)
+    console.log(data.accessToken);
     dispatch({
       type: 'userLoginSuccess',
-      payload: data.user,
+      payload: data.user
     });
     if (data.accessToken) {
       await AsyncStorage.setItem('token', data.accessToken);
@@ -59,56 +59,57 @@ export const loginUser = (email, password) => async dispatch => {
   } catch (error) {
     dispatch({
       type: 'userLoginFailed',
-      payload: error.response.data.message,
+      payload: error.response.data.message
     });
   }
-}
+};
 
 // logout user
 export const logoutUser = () => async dispatch => {
   try {
     dispatch({
-      type: 'userLogoutRequest',
-    })
+      type: 'userLogoutRequest'
+    });
 
     await AsyncStorage.setItem('token', '');
 
     dispatch({
       type: 'userLogoutSuccess',
       payload: {}
-    })
+    });
+
   } catch (error) {
     dispatch({
       type: 'userLogoutFailed',
-      payload: error.response.data.message,
+      payload: error.response.data.message
     });
   }
-}
+};
 
 
 export const getAllUsers = () => async dispatch => {
   try {
     dispatch({
-      type: 'getUsersRequest',
+      type: 'getUsersRequest'
     });
 
     const token = await AsyncStorage.getItem('token');
 
-    const {data} = await axios.get(`${uri}/user`, {
+    const { data } = await axios.get(`${uri}/user`, {
       headers: {
-        "Authorization": `Bearer ${token}`
-      },
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     dispatch({
       type: 'getUsersSuccess',
-      payload: data.metadata,
+      payload: data.metadata
     });
   } catch (error) {
     dispatch({
       type: 'getUsersFailed',
-      payload: error.response.data.message,
+      payload: error.response.data.message
     });
   }
-}
+};
 
