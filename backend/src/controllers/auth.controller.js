@@ -106,7 +106,11 @@ const login = async (req, res, next) => {
     });
     await newRefreshToken.save();
 
-    // save in cache redis
+    // if redis has existing access token, delete it first before saving new one
+    const existingAccessToken = await redisClient.get(`accessToken:${accessToken}`);
+    if (existingAccessToken) {
+      await redisClient.del(`accessToken:${accessToken}`);
+    }
     await redisClient.set(`accessToken:${accessToken}`, JSON.stringify(user._id), {
       EX: 10 * 3600
     });
@@ -128,6 +132,7 @@ const login = async (req, res, next) => {
       }
     });
   } catch (err) {
+    console.log(err);
     if (!err.statusCode) err.statusCode = 500;
     next(err);
   }
