@@ -1,25 +1,16 @@
-import {
-  Text,
-  View,
-  SafeAreaView,
-  Image,
-  KeyboardAvoidingView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import {useState, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import { Image, KeyboardAvoidingView, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Toast from 'react-native-toast-message';
-import {loginUser} from '../../redux/actions/userAction';
+import { loginUser } from '../../redux/actions/userAction';
 
-const LoginScreen = ({navigation}) => {
+const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const {error, isAuthenticated} = useSelector(state => state.user);
+  const { error, isAuthenticated } = useSelector(state => state.user);
 
   const handleLogin = async () => {
     await loginUser(email, password)(dispatch);
@@ -27,9 +18,9 @@ const LoginScreen = ({navigation}) => {
       Toast.show({
         type: 'error',
         text1: 'Login Error',
-        text2: error,
+        text2: error
       });
-      dispatch({type: 'clearError'});
+      dispatch({ type: 'clearError' });
     }
     navigation.navigate('Home');
   };
@@ -39,13 +30,13 @@ const LoginScreen = ({navigation}) => {
       Toast.show({
         type: 'success',
         text1: 'Login Successful',
-        text2: 'Welcome back!',
+        text2: 'Welcome back!'
       });
     }
   }, [isAuthenticated]);
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{flex: 1}}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
       <SafeAreaView className="flex-1 bg-white items-center">
         <View className="mt-[120px]">
           <Image

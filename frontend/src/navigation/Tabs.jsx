@@ -1,4 +1,4 @@
-import {View, Text, Image} from 'react-native';
+import { Image } from 'react-native';
 import React from 'react';
 import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -12,7 +12,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 const Tab = createBottomTabNavigator();
 
 const Tabs = (props) => {
-  const {user} = useSelector(state => state.user);
+  const { user } = useSelector(state => state.user);
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -29,59 +29,59 @@ const Tabs = (props) => {
       <Tab.Screen
         name="Home2"
         component={HomeScreen}
-        options={({route}) => ({
-          tabBarIcon: ({focused}) => (
+        options={({ route }) => ({
+          tabBarIcon: ({ focused }) => (
             <Image
               source={{
                 uri: focused ? 'https://cdn-icons-png.flaticon.com/512/6997/6997164.png' : 'https://cdn-icons-png.flaticon.com/512/6998/6998782.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
+              style={{ width: 30, height: 30, tintColor: focused ? 'white' : 'gray' }}
             />
             // <Ionicons size={30} name='home' color={focused ? 'white' : 'gray'}/>
-          ),
+          )
         })}
       />
-       <Tab.Screen
+      <Tab.Screen
         name="Search"
         component={SearchScreen}
-        options={({route}) => ({
-          tabBarIcon: ({focused}) => (
+        options={({ route }) => ({
+          tabBarIcon: ({ focused }) => (
             <Image
               source={{
                 uri: 'https://cdn-icons-png.flaticon.com/512/3031/3031293.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
+              style={{ width: 30, height: 30, tintColor: focused ? 'white' : 'gray' }}
             />
-          ),
+          )
         })}
       />
-       <Tab.Screen
+      <Tab.Screen
         name="Post"
         component={PostScreen}
-        options={({route}) => ({
-          tabBarStyle: {display: route.name === 'Post' ? 'none' : 'flex'},
-          tabBarIcon: ({focused}) => (
+        options={({ route }) => ({
+          tabBarStyle: { display: route.name === 'Post' ? 'none' : 'flex' },
+          tabBarIcon: ({ focused }) => (
             <Image
               source={{
                 uri: 'https://cdn-icons-png.flaticon.com/512/3161/3161837.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
+              style={{ width: 30, height: 30, tintColor: focused ? 'white' : 'gray' }}
             />
-          ),
+          )
         })}
       />
-       <Tab.Screen
+      <Tab.Screen
         name="Notification"
         component={NotificationScreen}
-        options={({route}) => ({
-          tabBarIcon: ({focused}) => (
+        options={({ route }) => ({
+          tabBarIcon: ({ focused }) => (
             <Image
               source={{
                 uri: focused ? 'https://cdn-icons-png.flaticon.com/512/2077/2077502.png' : 'https://cdn-icons-png.flaticon.com/512/151/151910.png'
               }}
-              style={{width: 30, height: 30, tintColor: focused ? 'white' : 'gray'}}
+              style={{ width: 30, height: 30, tintColor: focused ? 'white' : 'gray' }}
             />
-          ),
+          )
         })}
       />
       <Tab.Screen
@@ -89,12 +89,12 @@ const Tabs = (props) => {
         component={ProfileScreen}
         listeners={({ navigation, route }) => ({
           tabPress: (e) => {
-            e.preventDefault(); 
+            e.preventDefault();
             navigation.navigate('Profile', {
-              user_id: undefined, 
-              from: 'tab', 
+              user_id: undefined,
+              from: 'tab'
             });
-          },
+          }
         })}
         options={({ route }) => ({
           unmountOnBlur: true,
@@ -103,11 +103,11 @@ const Tabs = (props) => {
               source={{
                 uri: focused
                   ? 'https://cdn-icons-png.flaticon.com/512/14673/14673907.png'
-                  : 'https://cdn-icons-png.flaticon.com/512/17123/17123228.png',
+                  : 'https://cdn-icons-png.flaticon.com/512/17123/17123228.png'
               }}
               style={{ width: 30, height: 30, tintColor: focused ? 'white' : 'gray' }}
             />
-          ),
+          )
         })}
       />
     </Tab.Navigator>
