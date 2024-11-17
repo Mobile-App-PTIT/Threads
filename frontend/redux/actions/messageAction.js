@@ -37,3 +37,32 @@ export const getFollowingAndFollowers = () => async (dispatch) => {
     }
   }
 };
+
+// get chat message data
+export const getMessagesByUserIds = (otherUserId) => async (dispatch) => {
+  const token = await AsyncStorage.getItem('token');
+  try {
+    dispatch({
+      type: 'getMessagesRequest'
+    });
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      withCredentials: true
+    };
+    const { data } = await axios.get(
+      `${uri}/message/get-messages-by-user-ids/${otherUserId}`,
+      config
+    );
+    dispatch({
+      type: 'getMessagesSuccess',
+      payload: data
+    });
+  } catch (error) {
+    dispatch({
+      type: 'getMessagesFailed',
+      payload: error.data.message
+    });
+  }
+};
