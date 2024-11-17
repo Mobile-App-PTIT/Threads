@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Text, SafeAreaView, View, Image, TouchableOpacity } from 'react-native';
+import React, { useCallback, useContext, useState } from 'react';
+import { Image, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import axios from 'axios';
 import uri from '../../redux/uri';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../redux/actions/userAction';
 import { useFocusEffect } from '@react-navigation/native';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
@@ -11,6 +11,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Reposts from '../components/Reposts';
 import UserReplied from '../components/UserReplied';
+import { SocketContext } from '../components/SocketContext';
 
 const ProfileScreen = ({ navigation, route }) => {
   const { user } = useSelector(state => state.user);
@@ -21,6 +22,7 @@ const ProfileScreen = ({ navigation, route }) => {
   const [ownerRepliedPosts, setOwnerRepliedPosts] = useState([]);
   const [activeTab, setActiveTab] = useState('Threads'); // Default tab
   const dispatch = useDispatch();
+  const { socket } = useContext(SocketContext);
 
   const user_id = route.params?.from === 'onClick' ? route.params.user_id : undefined;
   const currentUserId = user_id !== undefined ? user_id : user._id;
@@ -40,8 +42,8 @@ const ProfileScreen = ({ navigation, route }) => {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${uri}/post/user/${currentUserId}/share`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       setSharedPosts(response.data.metadata);
     } catch (error) {
@@ -54,8 +56,8 @@ const ProfileScreen = ({ navigation, route }) => {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${uri}/post/user/${currentUserId}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       setOwnerPosts(response.data.metadata);
     } catch (error) {
@@ -68,8 +70,8 @@ const ProfileScreen = ({ navigation, route }) => {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${uri}/user/replied/${currentUserId}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       setOwnerRepliedPosts(response.data.metadata);
     } catch (error) {
@@ -82,8 +84,8 @@ const ProfileScreen = ({ navigation, route }) => {
       const token = await AsyncStorage.getItem('token');
       await axios.patch(`${uri}/post/${postId}/${isLiked ? 'unlike' : 'like'}`, {}, {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -115,6 +117,8 @@ const ProfileScreen = ({ navigation, route }) => {
   };
 
   const logoutHandler = () => {
+    socket.emit('cus-disconnect');
+    socket.close;
     logoutUser()(dispatch);
   };
 
