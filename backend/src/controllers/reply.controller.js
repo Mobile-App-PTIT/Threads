@@ -34,7 +34,7 @@ const createReplyToReply = async (req, res, next) => {
 
         let reply = await Reply.create(replyData);
 
-        reply = await reply.populate('user_id').execPopulate();
+        reply = await Reply.findById(reply._id).populate('user_id', '-password -gmail').lean();
 
         await Reply.updateOne(
             { _id: reply_id },

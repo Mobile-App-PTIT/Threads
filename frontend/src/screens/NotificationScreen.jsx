@@ -6,23 +6,25 @@ import {
   FlatList,
   Image,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { getNotifications } from '../../redux/actions/notificationAction';
-import { useDispatch, useSelector } from 'react-redux';
+import React, {useEffect, useState} from 'react';
+import {getNotifications} from '../../redux/actions/notificationAction';
+import {useDispatch, useSelector} from 'react-redux';
 import getTimeDuration from '../common/TimeGenerator';
 import uri from '../../redux/uri';
 import axios from 'axios';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NotificationScreen = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector(state => state.user);
+  const {user} = useSelector(state => state.user);
   const [refreshing, setRefreshing] = useState(false);
-  const { posts } = useSelector(state => state.post);
-  const { token, users } = useSelector(state => state.user);
+  const {posts} = useSelector(state => state.post);
+  const {token, users} = useSelector(state => state.user);
   const [active, setActive] = useState(0);
   const [repliesData, setRepliesData] = useState([]);
 
@@ -36,28 +38,30 @@ const NotificationScreen = () => {
       // Fetch replies when "Replies" tab is clicked
       try {
         const response = await axios.get(`${uri}/user/replied/${user._id}`, {
-          headers: { 
-            Authorization: `Bearer ${token}` 
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
         });
+
         const replies = response.data.metadata.map(reply => {
           return {
             _id: reply?._id,
             content: reply?.title,
             postId: reply?.post_id,
-            creator: {
-              _id: reply.replies?.user_id?._id,
-              name: reply.replies?.user_id?.name,
-              avatar: reply.replies?.user_id?.avatar, 
-              title: reply.replies?.user_id?.title,
-            },
-            time: getTimeDuration(reply.replies.createAt),
-            nestedReplies: reply.replies, 
+
+            creator: reply?.replies.map(item => ({
+              reply_id: item?._id,
+              user_id: item?.user_id?._id,
+              name: item?.user_id?.name,
+              avatar: item?.user_id?.avatar,
+              title: item?.title,
+              time: getTimeDuration(item?.createdAt),
+            })),
           };
         });
         setRepliesData(replies);
       } catch (error) {
-        console.error("Error fetching replies:", error);
+        console.error('Error fetching replies:', error);
       }
     }
   };
@@ -104,7 +108,7 @@ const NotificationScreen = () => {
 
   return (
     <SafeAreaView className="bg-zinc-900 flex-1">
-      <View className="p-5 mb-[190px]">
+      <View className="p-5">
         <Text className="text-4xl font-[700] text-white">Activity</Text>
 
         <View className="w-full flex-row my-3 items-center">
@@ -116,13 +120,11 @@ const NotificationScreen = () => {
                 backgroundColor: active === index ? 'white' : 'transparent',
                 borderWidth: active === index ? 1 : 0,
               }}
-              onPress={() => handleTabPress(index)}
-            >
+              onPress={() => handleTabPress(index)}>
               <Text
                 className={`${
                   active !== index ? 'text-white' : 'text-black'
-                } text-[20px] font-[600] text-center pt-[6px]`}
-              >
+                } text-[20px] font-[600] text-center pt-[6px]`}>
                 {label}
               </Text>
             </TouchableOpacity>
@@ -131,53 +133,105 @@ const NotificationScreen = () => {
 
         {/* Replies Section */}
         {active === 1 && (
-          <FlatList
-            data={repliesData}
-            keyExtractor={item => item._id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => {}}>
-                <View className="flex-row gap-3 mt-3" key={item._id}>
-                  <View className="relative">
-                    <Image
-                      source={require('../../assets/images/avatar.jpg')} 
-                      style={{ width: 50, height: 50, borderRadius: 100 }}
-                    />
-                    <View
-                      style={{
-                        position: 'absolute',
-                        bottom: 10,
-                        right: -5,
-                        width: 20,
-                        height: 20,
-                        backgroundColor: '#1DA1F2',
-                        borderRadius: 10,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Ionicons name="arrow-forward" size={12} color="white" />
-                    </View>
-                  </View>
-                  <View className="pl-3">
-                    <View className="flex-row items-center">
-                      <Text className="text-[16px] text-white font-bold">
-                        {item.creator.name}
+          <>
+            {repliesData.length === 0 ? (
+              <View className="w-full h-[80px] flex items-center justify-center">
+                <Text className="text-[16px] text-white mt-5">
+                  You have no replies yet!
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={repliesData}
+                contentContainerStyle = {{paddingBottom: 100}}
+                className='h-full'
+                keyExtractor={item => item._id.toString()}
+                showsVerticalScrollIndicator={false}
+                renderItem={({item}) => (
+                  <View>
+                    {/* Kiểm tra creator và map */}
+                    {item.creator && item.creator.length > 0 ? (
+                      item.creator.map(i => (
+                        <TouchableOpacity onPress={() => {}} key={i.reply_id}>
+                          <View className="flex-row gap-2 mt-3">
+                            <View className="relative">
+                              <Image
+                                source={
+                                  i.avatar !== null
+                                    ? {uri: i.avatar}
+                                    : require('../../assets/images/avatar.jpg')
+                                }
+                                style={{
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: 100,
+                                }}
+                              />
+                              <View
+                                style={{
+                                  position: 'absolute',
+                                  bottom: 62,
+                                  right: -5,
+                                  width: 20,
+                                  height: 20,
+                                  backgroundColor: '#1DA1F2',
+                                  borderRadius: 10,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}>
+                                <Ionicons
+                                  name="arrow-forward"
+                                  size={12}
+                                  color="white"
+                                />
+                              </View>
+                            </View>
+                            <View className="pl-3 border-b border-gray-700 pb-3 w-full">
+                              <View className="flex-row items-center">
+                                <Text className="text-[16px] text-white font-bold">
+                                  {i.name}
+                                </Text>
+                                <Text className="pl-2 text-[14px] text-gray-400">
+                                  {i.time}
+                                </Text>
+                              </View>
+                              <Text className="text-s text-gray-500 font-medium mt-1">
+                                {item.content}
+                              </Text>
+                              <Text className="text-sm text-white font-medium mt-1">
+                                {i.title}
+                              </Text>
+                              <View className="flex-row gap-2 items-center pt-3">
+                                <Ionicons
+                                  name="heart-outline"
+                                  size={20}
+                                  color="white"
+                                />
+                                <Ionicons
+                                  name="chatbubble-outline"
+                                  size={17}
+                                  color="white"
+                                />
+                                <Feather
+                                  name="share-2"
+                                  size={18}
+                                  color="white"
+                                />
+                              </View>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <Text className="text-gray-500 text-center">
+                        No replies
                       </Text>
-                      <Text className="pl-2 text-[14px] text-gray-400">
-                        {item.time}
-                      </Text>
-                    </View>
-                    <Text className="text-s text-gray-500 font-medium mt-1">
-                      {item.content}
-                    </Text>
-                    <Text className="text-sm text-gray-400 font-medium mt-1">
-                      {item.creator.title}
-                    </Text>
+                    )}
                   </View>
-                </View>
-              </TouchableOpacity>
+                )}
+              />
             )}
-          />
+          </>
         )}
 
         {/* Mentions Section */}
@@ -206,7 +260,7 @@ const NotificationScreen = () => {
               />
             }
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
+            renderItem={({item}) => {
               const time = item.createdAt;
               const formattedDuration = getTimeDuration(time);
 
@@ -215,7 +269,7 @@ const NotificationScreen = () => {
 
                 await axios
                   .get(`${uri}/get-user/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {Authorization: `Bearer ${token}`},
                   })
                   .then(res => {
                     if (item.type === 'Follow') {
@@ -231,18 +285,22 @@ const NotificationScreen = () => {
               };
 
               return (
-                <TouchableOpacity onPress={() => handleNavigation(item)} className="mt-3">
+                <TouchableOpacity
+                  onPress={() => handleNavigation(item)}
+                  className="mt-3">
                   <View className="flex-row gap-3" key={item._id}>
                     <View className="relative">
                       <Image
                         source={
                           users.find(user => user._id === item.creator._id)
                             ? {
-                                uri: users.find(user => user._id === item.creator._id)?.avatar.url,
+                                uri: users.find(
+                                  user => user._id === item.creator._id,
+                                )?.avatar.url,
                               }
                             : require('../../assets/images/avatar.jpg')
                         }
-                        style={{ width: 50, height: 50, borderRadius: 100 }}
+                        style={{width: 50, height: 50, borderRadius: 100}}
                       />
                       {item.type === 'Like' && (
                         <View className="absolute bottom-5 border-[2px] border-[#fff] right-[-5px] h-[25px] w-[25px] bg-[#eb4545] rounded-full items-center justify-center flex-row">

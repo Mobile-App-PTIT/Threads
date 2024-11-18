@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import {useSelector} from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -30,7 +31,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [newReply, setNewReply] = useState('');
 
-  useEffect(() => {
+  useFocusEffect(() => {
     const fetchCommentAndReplies = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
@@ -150,7 +151,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
         <TouchableOpacity onPress={() => navigation.goBack()} className="pr-4">
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="text-white text-lg font-bold">Comment Details</Text>
+        <Text className="text-white text-lg font-bold">Comment Detail</Text>
       </View>
 
       {/* Display the main comment */}
@@ -160,7 +161,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
             <Image
               source={
                 comment?.user_id?.avatar
-                  ? {uri: comment.user_id.avatar}
+                  ? {uri: comment?.user_id?.avatar}
                   : require('../../assets/images/avatar.jpg')
               }
               style={{width: 35, height: 35, borderRadius: 17.5}}
@@ -244,7 +245,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
                 comment?.likes?.includes(user._id) ? 'heart' : 'heart-outline'
               }
               size={20}
-              color={comment?.likes?.includes(user._id) ? 'red' : 'white'}
+              color={comment?.likes?.include(user._id) ? 'red' : 'white'}
             />
             <Text className="ml-2 text-gray-400">
               {comment?.likes?.length || 0} Likes
@@ -256,7 +257,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
               style={{marginLeft: 16}}
             />
             <Text className="ml-2 text-gray-400">
-              {comment?.replies?.length || 0} Replies
+              {replies?.length || 0} Replies
             </Text>
           </View>
         </View>

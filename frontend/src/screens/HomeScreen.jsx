@@ -21,7 +21,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
 import SharePopup from '../components/SharePopup';
 
-const loader = require('../../assets/loader.json');
 
 const HomeScreen = props => {
   const navigation = useNavigation();
@@ -329,7 +328,7 @@ const HomeScreen = props => {
                     className="flex-row items-center mr-4">
                     <Ionicons
                       name="chatbubble-outline"
-                      size={20}
+                      size={18}
                       color="white"
                     />
                     <Text className="text-[16px] text-white ml-2">
@@ -342,7 +341,7 @@ const HomeScreen = props => {
                   <TouchableOpacity
                     onPress={() => onSharePress(item._id)}
                     className="flex-row items-center">
-                    <Feather name="share-2" size={20} color="white" />
+                    <Feather name="share-2" size={18} color="white" />
                     <Text className="text-[16px] text-white ml-2">Share</Text>
                   </TouchableOpacity>
                 </View>

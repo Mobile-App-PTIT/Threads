@@ -191,7 +191,7 @@ const PostDetailsScreen = ({navigation, route}) => {
               style={{width: 24, height: 24, tintColor: 'white'}}
             />
           </TouchableOpacity>
-          <Text className="text-white text-lg font-bold">Post Details</Text>
+          <Text className="text-white text-lg font-bold">Post Detail</Text>
         </View>
 
         <View className="p-4 border-b border-gray-700">

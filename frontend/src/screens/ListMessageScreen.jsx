@@ -79,7 +79,7 @@ const ListMessageScreen = ({ navigation }) => {
             <View className="h-5 w-5 rounded-full bg-green-500 absolute top-4 right-0 z-50 border border-white"></View>
           )}
           <Image
-            source={item.image ? { uri: item.image } : require('../../assets/images/avatar.jpg')}
+            source={item.userImg ? { uri: item.userImg } : require('../../assets/images/avatar.jpg')}
             resizeMode="contain"
             className="h-20 w-20 rounded-full"
           />
