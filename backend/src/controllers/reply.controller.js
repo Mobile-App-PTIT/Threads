@@ -32,7 +32,9 @@ const createReplyToReply = async (req, res, next) => {
             media: uploadedMedia.length > 0 ? uploadedMedia : undefined,
         };
 
-        const reply = await Reply.create(replyData);
+        let reply = await Reply.create(replyData);
+
+        reply = await reply.populate('user_id').execPopulate();
 
         await Reply.updateOne(
             { _id: reply_id },
