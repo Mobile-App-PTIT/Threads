@@ -19,7 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const NotificationScreen = () => {
+const NotificationScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.user);
   const [refreshing, setRefreshing] = useState(false);
@@ -152,7 +152,11 @@ const NotificationScreen = () => {
                     {/* Kiểm tra creator và map */}
                     {item.creator && item.creator.length > 0 ? (
                       item.creator.map(i => (
-                        <TouchableOpacity onPress={() => {}} key={i.reply_id}>
+                        <TouchableOpacity onPress={() =>
+                          navigation.navigate('PostDetailScreen', {
+                            post_id: item.postId,
+                          })
+                        } key={i.reply_id}>
                           <View className="flex-row gap-2 mt-3">
                             <View className="relative">
                               <Image
