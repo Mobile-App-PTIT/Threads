@@ -122,6 +122,12 @@ const getUserReplied = async (req, res, next) => {
         'path': 'user_id',
         'select': '_id name avatar'
       }
+    }).populate({
+      'path': 'replies',
+      'populate': {
+        'path': 'user_id',
+        'select': '_id name avatar'
+      }
     }).sort({ createdAt: -1 }).lean();
 
     res.status(200).json({

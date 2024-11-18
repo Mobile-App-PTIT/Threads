@@ -2,6 +2,7 @@ const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
 const Notification = require('../models/notification.model');
+const mongoose = require('mongoose');
 const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
@@ -143,17 +144,25 @@ const updatePost = async (req, res, next) => {
 }
 
 const deletePost = async (req, res, next) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { post_id } = req.params;
-        const post = await Post.findByIdAndDelete({ _id: post_id });
+        const post = await Post.findByIdAndDelete({ _id: post_id }, { session });
 
-        await Reply.deleteMany({ post_id });
+        await Reply.deleteMany({ post_id }, { session });
         await deleteMedia(post.media);
+
+        await session.commitTransaction();
+        session.endSession();
 
         res.status(200).json({
             message: "Post deleted successfully",
         });
     } catch(err) {
+        await session.abortTransaction();
+        session.endSession();
         next(err);
     }
 }
