@@ -31,7 +31,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [newReply, setNewReply] = useState('');
 
-  useFocusEffect(() => {
+  useEffect(() => {
     const fetchCommentAndReplies = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
@@ -245,7 +245,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
                 comment?.likes?.includes(user._id) ? 'heart' : 'heart-outline'
               }
               size={20}
-              color={comment?.likes?.include(user._id) ? 'red' : 'white'}
+              color={comment?.likes?.includes(user._id) ? 'red' : 'white'}
             />
             <Text className="ml-2 text-gray-400">
               {comment?.likes?.length || 0} Likes
