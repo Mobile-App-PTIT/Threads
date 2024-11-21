@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import {useSelector} from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-crop-picker';
