@@ -107,8 +107,8 @@ const PostScreen = ({navigation}) => {
           <View className="mt-6 ml-4 flex-row">
             <Image
               source={
-                user?.avatar?.url
-                  ? {uri: user?.avatar?.url}
+                user?.avatar
+                  ? {uri: user?.avatar}
                   : require('../../assets/images/avatar.jpg')
               }
               style={{width: 40, height: 40, borderRadius: 100}}
