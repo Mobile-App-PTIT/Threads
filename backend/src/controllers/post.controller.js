@@ -149,10 +149,14 @@ const deletePost = async (req, res, next) => {
 
     try {
         const { post_id } = req.params;
-        const post = await Post.findByIdAndDelete({ _id: post_id }, { session });
-
-        await Reply.deleteMany({ post_id }, { session });
-        await deleteMedia(post.media);
+        const post = await Post.findByIdAndDelete({ _id: post_id }).session(session);
+        await User.updateMany({
+            share: { $elemMatch: { post_id } }
+        }, {
+            $pull: { share: { post_id } }
+        }).session(session);
+        await Reply.deleteMany({ post_id }).session(session);
+        await deleteMedia(post.media).session(session);
 
         await session.commitTransaction();
         session.endSession();
@@ -362,23 +366,48 @@ const updateReply = async (req, res, next) => {
 }
 
 const deleteReply = async (req, res, next) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { reply_id } = req.params;
-        const reply = await Reply.findByIdAndDelete({ _id: reply_id });
 
-        await Post.findByIdAndUpdate(
-            { _id: reply.post_id },
-            { $pull: { replies: reply_id } }
-        );
+        await deleteReplyAndNested(reply_id, session);
 
-        await deleteMedia(reply.media);
+        await session.commitTransaction();
+        session.endSession();
 
-        res.status(200).json({
+        res.status(200).json({ 
             message: "Reply deleted successfully",
         });
     } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
         next(err);
     }
+}
+
+const deleteReplyAndNested = async (reply_id, session) => {
+    const reply = await Reply.findById(reply_id).session(session);
+    if(!reply) return;
+
+    if(reply.replies && reply.replies.length > 0) {
+        await Promise.all(
+            reply.replies.map(async (nestedReply) => {
+                await deleteReplyAndNested(nestedReply, session);
+            })
+        );
+    }
+
+    if(reply.media && reply.media.length > 0) {
+        await Promise.all(
+            reply.media.map(async (mediaUrl) => {
+                await deleteMedia([mediaUrl]);
+            }
+        ));
+    }
+
+    await Reply.deleteOne({ _id: reply_id }).session(session);
 }
 
 // Notification
