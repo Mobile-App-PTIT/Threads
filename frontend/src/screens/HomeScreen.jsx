@@ -31,6 +31,7 @@ const HomeScreen = props => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [extraPaddingTop] = useState(new Animated.Value(0));
   const [isSharePopupVisible, setSharePopupVisible] = useState(false);
+  const [isEditPopupVisible, setEditPopupVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
 
   const refreshingHeight = 100;
@@ -110,6 +111,11 @@ const HomeScreen = props => {
     setSelectedPostId(post_id);
     setSharePopupVisible(true);
   };
+
+  const onEditPress = post_id => {
+    setSelectedPostId(post_id);
+    setEditPopupVisible(true);
+  }
 
   const toggleLike = async (postId, liked, index) => {
     try {
@@ -209,27 +215,13 @@ const HomeScreen = props => {
             </View>
           </View>
         </TouchableOpacity>
-        {/* <LottieView
-          ref={lottieViewRef}
-          style={{
-            height: refreshingHeight,
-            display: isRefreshing ? 'flex' : 'none',
-            position: 'absolute',
-            top: 15,
-            left: 0,
-            right: 0,
-          }}
-          loop={false}
-          source={loader}
-          progress={progress}
-        /> */}
         <FlatList
           data={posts}
           showsVerticalScrollIndicator={false}
           renderItem={({item, index}) => (
             <View className="p-[15px] border-b border-gray-700">
               <View className="relative">
-                <View className="flex-row w-full">
+                <View className="flex-row w-full justify-between">
                   <View className="flex-row w-[85%] items-center">
                     <TouchableOpacity
                       onPress={() => {
@@ -270,12 +262,20 @@ const HomeScreen = props => {
                       </Text>
                     </View>
                   </View>
+                  <TouchableOpacity className='right-5' onPress={() => onEditPress(item._id)}>
+                    <Ionicons
+                      name="ellipsis-horizontal"
+                      color="white"
+                      size={20}
+                    />
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={() =>
-                        navigation.navigate('PostDetailScreen', {
-                          post_id: item._id,
-                        })
-                      }>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('PostDetailScreen', {
+                      post_id: item._id,
+                    })
+                  }>
                   {Array.isArray(item?.media) && item.media.length > 0 ? (
                     <ScrollView
                       horizontal
@@ -379,6 +379,13 @@ const HomeScreen = props => {
         isVisible={isSharePopupVisible}
         onClose={() => setSharePopupVisible(false)}
         post_id={selectedPostId}
+        func='share'
+      />
+      <SharePopup
+        isVisible={isEditPopupVisible}
+        onClose={() => setEditPopupVisible(false)}
+        post_id={selectedPostId}
+        func='delete'
       />
     </>
   );
