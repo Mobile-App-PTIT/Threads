@@ -37,7 +37,7 @@ const NotificationScreen = ({navigation}) => {
     if (index === 1) {
       // Fetch replies when "Replies" tab is clicked
       try {
-        const response = await axios.get(`${uri}/user/replied/${user._id}`, {
+        const response = await axios.get(`${uri}/notification/user/${user._id}/replied`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -1,35 +1,70 @@
 import React from 'react';
-import { View, Text, Image, FlatList, ScrollView } from 'react-native';
+import { View, Text, Image, FlatList, ScrollView, StyleSheet } from 'react-native';
 import Video from 'react-native-video';
 
 const UserReplied = ({ replies, ListHeaderComponent }) => {
   console.log(replies);
 
-  const renderComment = (comment) => (
-    <View key={comment._id} className="flex-row items-center my-2">
-      <Image
-        source={{ uri: comment.user_id.avatar }}
-        className="w-9 h-9 rounded-full mr-3"
-      />
-      <View className="flex-1 bg-[#333] p-3 rounded-lg">
-        <Text className="text-white font-bold text-sm">
-          {comment.user_id.name}
-        </Text>
-        <Text className="text-gray-500 text-xs mt-1">{comment.title}</Text>
-        {comment?.media?.length > 0 && (
-          <ScrollView horizontal className="mt-3 px-2">
-            {comment.media.map((mediaUrl, index) =>
+  // Group replies by post_id
+  const groupedData = {};
+  replies.forEach((reply) => {
+    const postId = reply.post_id._id;
+    if (!groupedData[postId]) {
+      groupedData[postId] = {
+        post: reply.post_id,
+        replies: [],
+      };
+    }
+    groupedData[postId].replies.push(reply);
+  });
+  const postsWithReplies = Object.values(groupedData);
+
+  // Helper function to check if the media URL is an image
+  const isImage = (url) => {
+    return /\.(jpeg|jpg|gif|png)$/i.test(url);
+  };
+
+  const renderPost = ({ item }) => {
+    console.log('Rendering Post:', item.post.title);
+    console.log('Replies:', item.replies);
+
+    return (
+      <View style={styles.postContainer}>
+        {/* Post Information */}
+        <View style={styles.postHeader}>
+          <Image
+            source={{
+              uri:
+                item.post.user_id?.avatar ||
+                'https://example.com/default-avatar.jpg',
+            }}
+            style={styles.postAvatar}
+          />
+          <View>
+            <Text style={styles.postAuthor}>{item.post.user_id.name}</Text>
+            <Text style={styles.postDate}>
+              {new Date(item.post.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Post Content */}
+        <Text style={styles.postTitle}>{item.post.title}</Text>
+
+        {item.post.media && item.post.media.length > 0 && (
+          <ScrollView horizontal style={styles.mediaContainer}>
+            {item.post.media.map((mediaUrl, index) =>
               isImage(mediaUrl) ? (
                 <Image
                   key={index}
                   source={{ uri: mediaUrl }}
-                  className="w-30 h-30 rounded-lg mr-3"
+                  style={styles.mediaImage}
                 />
               ) : (
                 <Video
                   key={index}
                   source={{ uri: mediaUrl }}
-                  className="w-30 h-30 rounded-lg mr-3"
+                  style={styles.mediaVideo}
                   controls={true}
                   resizeMode="cover"
                 />
@@ -37,77 +72,163 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
             )}
           </ScrollView>
         )}
-      </View>
-    </View>
-  );
 
-  const renderPost = ({ item }) => (
-    <View className="bg-[#2c2c2e] p-4 rounded-xl mb-4 shadow-lg">
-      <View className="flex-row items-center mb-3">
-        <Image
-          source={{
-            uri:
-              item.post_id.user_id?.avatar ||
-              'https://example.com/default-avatar.jpg',
-          }}
-          className="w-12 h-12 rounded-full mr-3"
-        />
-        <View>
-          <Text className="text-white font-bold text-base">
-            {item.post_id.title}
-          </Text>
-          <Text className="text-gray-500 text-xs mt-1">
-            {new Date(item.post_id.createdAt).toLocaleDateString()}
-          </Text>
+        {/* Display Replies */}
+        <View style={styles.repliesContainer}>
+          {item.replies && item.replies.length > 0 ? (
+            item.replies.map((reply) => (
+              <View key={reply._id} style={styles.replyContainer}>
+                <Image
+                  source={{ uri: reply.user_id.avatar }}
+                  style={styles.replyAvatar}
+                />
+                <View style={styles.replyContent}>
+                  <Text style={styles.replyAuthor}>{reply.user_id.name}</Text>
+                  <Text style={styles.replyText}>{reply.title}</Text>
+                  {reply.media && reply.media.length > 0 && (
+                    <ScrollView horizontal style={styles.mediaContainer}>
+                      {reply.media.map((mediaUrl, index) =>
+                        isImage(mediaUrl) ? (
+                          <Image
+                            key={index}
+                            source={{ uri: mediaUrl }}
+                            style={styles.mediaImage}
+                          />
+                        ) : (
+                          <Video
+                            key={index}
+                            source={{ uri: mediaUrl }}
+                            style={styles.mediaVideo}
+                            controls={true}
+                            resizeMode="cover"
+                          />
+                        )
+                      )}
+                    </ScrollView>
+                  )}
+                </View>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noRepliesText}>No replies yet.</Text>
+          )}
         </View>
       </View>
-
-      {item.post_id.media.length > 0 && (
-        <ScrollView horizontal className="mt-3 px-2">
-          {item.post_id.media.map((mediaUrl, index) =>
-            isImage(mediaUrl) ? (
-              <Image
-                key={index}
-                source={{ uri: mediaUrl }}
-                className="w-30 h-30 rounded-lg mr-3"
-              />
-            ) : (
-              <Video
-                key={index}
-                source={{ uri: mediaUrl }}
-                className="w-30 h-30 rounded-lg mr-3"
-                controls={true}
-                resizeMode="cover"
-              />
-            )
-          )}
-        </ScrollView>
-      )}
-
-      <View className="mt-4 border-t border-[#3a3a3c] pt-3">
-        {renderComment(item)}
-      </View>
-    </View>
-  );
-
-  // Helper function to check if the media URL is an image
-  const isImage = (url) => {
-    return url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+    );
   };
 
   return (
     <FlatList
-      data={replies}
+      data={postsWithReplies}
       ListHeaderComponent={ListHeaderComponent}
-      keyExtractor={(item) => item._id.toString()}
+      keyExtractor={(item) => item.post._id.toString()}
       renderItem={renderPost}
       ListEmptyComponent={
-        <Text className="text-white text-center mt-5">Nothing here</Text>
+        <Text style={styles.emptyText}>Nothing here</Text>
       }
-      contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 10 }}
-      style={{ backgroundColor: '#1c1c1e' }}
+      contentContainerStyle={styles.listContentContainer}
+      style={styles.list}
     />
   );
 };
+
+const styles = StyleSheet.create({
+  list: {
+    backgroundColor: '#1c1c1e',
+  },
+  listContentContainer: {
+    paddingBottom: 20,
+    paddingHorizontal: 10,
+  },
+  postContainer: {
+    backgroundColor: '#2c2c2e',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  postHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  postAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+  postAuthor: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  postDate: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  postTitle: {
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  mediaContainer: {
+    marginTop: 8,
+  },
+  mediaImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  mediaVideo: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  repliesContainer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#3a3a3c',
+    paddingTop: 12,
+  },
+  replyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  replyAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 12,
+  },
+  replyContent: {
+    flex: 1,
+    backgroundColor: '#333',
+    padding: 12,
+    borderRadius: 8,
+  },
+  replyAuthor: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  replyText: {
+    color: '#aaa',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  noRepliesText: {
+    color: '#aaa',
+    fontStyle: 'italic',
+  },
+  emptyText: {
+    color: '#fff',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+});
 
 export default UserReplied;
