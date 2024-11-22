@@ -36,7 +36,11 @@ exports.uploadMedia = async (fileData, resourceType = 'image') => {
       resource_type: resourceType,
     });
     console.log("Uploaded Media URL:", result.secure_url);
-    return result.secure_url;
+    return {
+      url: result.secure_url,
+      public_id: result.public_id,
+      resource_type: resourceType,
+    };
   } catch (error) {
     console.error("Error uploading to Cloudinary:", error);
     throw error;
