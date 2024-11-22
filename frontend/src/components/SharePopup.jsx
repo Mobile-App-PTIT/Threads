@@ -69,6 +69,12 @@ const SharePopup = ({isVisible, onClose, post_id, func}) => {
     }
   };
 
+  const handleDeleteComment = async () => {
+
+  }
+
+  const handleDeleteReply = async () => {}
+
   return (
     <Modal transparent visible={isVisible} animationType="none">
       <View style={styles.overlay}>
@@ -98,6 +104,30 @@ const SharePopup = ({isVisible, onClose, post_id, func}) => {
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={handleDelete}>
+                <Text style={styles.confirmButtonText}>Yes</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          {func === 'deleteComment' && (
+            <>
+              <Text style={styles.modalText}>
+                Do you want to delete comment?
+              </Text>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleDeleteComment}>
+                <Text style={styles.confirmButtonText}>Yes</Text>
+              </TouchableOpacity>
+            </>
+          )}
+           {func === 'deleteReply' && (
+            <>
+              <Text style={styles.modalText}>
+                Do you want to delete reply?
+              </Text>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleDeleteReply}>
                 <Text style={styles.confirmButtonText}>Yes</Text>
               </TouchableOpacity>
             </>

@@ -18,6 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import Video from 'react-native-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SharePopup from '../components/SharePopup';
 
 const PostDetailsScreen = ({navigation, route}) => {
   const post_id = route.params.post_id;
@@ -26,6 +27,7 @@ const PostDetailsScreen = ({navigation, route}) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isDeletePopupVisible, setIsDeletePopupVisible] = useState(false);
   const [mediaFiles, setMediaFiles] = useState([]);
 
   useEffect(() => {
@@ -173,271 +175,298 @@ const PostDetailsScreen = ({navigation, route}) => {
     setMediaFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
+  const onPressDelete = () => {
+    setIsDeletePopupVisible(true);
+  };
+
   return (
-    <SafeAreaView className="bg-zinc-900 flex-1">
-      <ScrollView
-        contentContainerStyle={{
-          paddingBottom: mediaFiles.length > 0 ? 130 : 0, // Adjust padding based on mediaFiles
-        }}>
-        {/* Header with Back Button */}
-        <View className="flex-row items-center p-4 bg-zinc-900 border-b border-gray-700">
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="pr-4">
-            <Image
-              source={{
-                uri: 'https://cdn-icons-png.flaticon.com/512/2223/2223615.png',
-              }}
-              style={{width: 24, height: 24, tintColor: 'white'}}
-            />
-          </TouchableOpacity>
-          <Text className="text-white text-lg font-bold">Post Detail</Text>
-        </View>
-
-        <View className="p-4 border-b border-gray-700">
-          <View className="flex-row items-center">
-            <Image
-              source={
-                postData?.user_id?.avatar
-                  ? {uri: postData.user_id.avatar}
-                  : require('../../assets/images/avatar.jpg')
-              }
-              style={{width: 40, height: 40, borderRadius: 20}}
-            />
-            <View className="pl-3">
-              <Text className="text-white font-bold">
-                {postData?.user_id?.name || 'Unknown User'}
-              </Text>
-              <Text className="text-gray-500">
-                {getTimeDuration(postData?.createdAt)}
-              </Text>
-            </View>
-          </View>
-          <Text className="mt-2 text-white font-semibold">
-            {postData?.title || 'No Title'}
-          </Text>
-
-          {postData?.media && (
-            <ScrollView horizontal className="my-3 flex flex-row">
-              {postData?.media?.map((i, _id) => (
-                <Image
-                  key={_id}
-                  source={{uri: i}}
-                  style={{
-                    aspectRatio: 1,
-                    borderRadius: 10,
-                    width: 260,
-                    height: 260,
-                    marginRight: 20,
-                  }}
-                  resizeMode="cover"
-                />
-              ))}
-            </ScrollView>
-          )}
-
-          <View className="flex-row items-center mt-3">
+    <>
+      <SafeAreaView className="bg-zinc-900 flex-1">
+        <ScrollView
+          contentContainerStyle={{
+            paddingBottom: mediaFiles.length > 0 ? 130 : 0, // Adjust padding based on mediaFiles
+          }}>
+          {/* Header with Back Button */}
+          <View className="flex-row items-center p-4 bg-zinc-900 border-b border-gray-700">
             <TouchableOpacity
-              onPress={() =>
-                togglePostLike(post_id, postData.likes?.includes(user._id))
-              }>
-              <Ionicons
-                name={
-                  postData.likes?.includes(user._id) ? 'heart' : 'heart-outline'
-                }
-                size={24}
-                color={postData.likes?.includes(user._id) ? 'red' : 'white'}
+              onPress={() => navigation.goBack()}
+              className="pr-4">
+              <Image
+                source={{
+                  uri: 'https://cdn-icons-png.flaticon.com/512/2223/2223615.png',
+                }}
+                style={{width: 24, height: 24, tintColor: 'white'}}
               />
             </TouchableOpacity>
-            <Text className="ml-2 text-gray-400">
-              {postData?.likes?.length || 0} Likes
-            </Text>
+            <Text className="text-white text-lg font-bold">Post Detail</Text>
           </View>
-        </View>
 
-        {/* Comments Section*/}
-        <View className="p-4">
-          <Text className="text-lg text-white font-bold">
-            {comments.length} {comments.length > 1 ? 'Comments' : 'Comment'}
-          </Text>
-          {comments.length > 0 ? (
-            comments.map((comment, index) => (
-              <View key={index} className="mt-4 p-3 border-b border-gray-700">
-                <View className="flex-row items-center">
+          <View className="p-4 border-b border-gray-700">
+            <View className="flex-row items-center">
+              <Image
+                source={
+                  postData?.user_id?.avatar
+                    ? {uri: postData.user_id.avatar}
+                    : require('../../assets/images/avatar.jpg')
+                }
+                style={{width: 40, height: 40, borderRadius: 20}}
+              />
+              <View className="pl-3">
+                <Text className="text-white font-bold">
+                  {postData?.user_id?.name || 'Unknown User'}
+                </Text>
+                <Text className="text-gray-500">
+                  {getTimeDuration(postData?.createdAt)}
+                </Text>
+              </View>
+            </View>
+            <Text className="mt-2 text-white font-semibold">
+              {postData?.title || 'No Title'}
+            </Text>
+
+            {postData?.media && (
+              <ScrollView horizontal className="my-3 flex flex-row">
+                {postData?.media?.map((i, _id) => (
                   <Image
-                    source={
-                      comment?.user_id?.avatar
-                        ? {uri: comment.user_id.avatar}
-                        : require('../../assets/images/avatar.jpg')
-                    }
-                    style={{width: 35, height: 35, borderRadius: 17.5}}
+                    key={_id}
+                    source={{uri: i}}
+                    style={{
+                      aspectRatio: 1,
+                      borderRadius: 10,
+                      width: 260,
+                      height: 260,
+                      marginRight: 20,
+                    }}
+                    resizeMode="cover"
                   />
-                  <View className="pl-3">
-                    <Text className="text-white font-medium">
-                      {comment?.user_id?.name || 'Unknown User'}
-                    </Text>
-                    <Text className="text-gray-500 text-xs">
-                      {getTimeDuration(comment?.createdAt)}
-                    </Text>
+                ))}
+              </ScrollView>
+            )}
+
+            <View className="flex-row items-center mt-3">
+              <TouchableOpacity
+                onPress={() =>
+                  togglePostLike(post_id, postData.likes?.includes(user._id))
+                }>
+                <Ionicons
+                  name={
+                    postData.likes?.includes(user._id)
+                      ? 'heart'
+                      : 'heart-outline'
+                  }
+                  size={24}
+                  color={postData.likes?.includes(user._id) ? 'red' : 'white'}
+                />
+              </TouchableOpacity>
+              <Text className="ml-2 text-gray-400">
+                {postData?.likes?.length || 0} Likes
+              </Text>
+            </View>
+          </View>
+
+          {/* Comments Section*/}
+          <View className="p-4">
+            <Text className="text-lg text-white font-bold">
+              {comments.length} {comments.length > 1 ? 'Comments' : 'Comment'}
+            </Text>
+
+            {comments.length > 0 ? (
+              comments.map((comment, index) => (
+                <View key={index} className="mt-4 p-3 border-b border-gray-700">
+                  <View className='flex flex-row justify-between'>
+                    <View className="flex-row items-center">
+                      <Image
+                        source={
+                          comment?.user_id?.avatar
+                            ? {uri: comment.user_id.avatar}
+                            : require('../../assets/images/avatar.jpg')
+                        }
+                        style={{width: 35, height: 35, borderRadius: 17.5}}
+                      />
+                      <View className="pl-3">
+                        <Text className="text-white font-medium">
+                          {comment?.user_id?.name || 'Unknown User'}
+                        </Text>
+                        <Text className="text-gray-500 text-xs">
+                          {getTimeDuration(comment?.createdAt)}
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      className=""
+                      onPress={() => onPressDelete(comment?._id)}>
+                      <Ionicons
+                        name="ellipsis-horizontal"
+                        color="white"
+                        size={20}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text className="mt-2 text-gray-400">
+                    {comment?.title || 'No Content'}
+                  </Text>
+
+                  {/* Render Media */}
+                  {comment?.media && comment.media.length > 0 && (
+                    <ScrollView horizontal className="my-3 flex flex-row">
+                      {comment.media.map((mediaItem, idx) => {
+                        const isImage = mediaItem.match(
+                          /\.(jpeg|jpg|gif|png)$/i,
+                        );
+                        const isVideo =
+                          mediaItem.match(/\.(mp4|mov|avi|mkv)$/i);
+
+                        if (isImage) {
+                          return (
+                            <Image
+                              key={idx}
+                              source={{uri: mediaItem}}
+                              style={{
+                                width: 260,
+                                height: 260,
+                                borderRadius: 10,
+                                marginRight: 20,
+                              }}
+                              resizeMode="cover"
+                            />
+                          );
+                        } else if (isVideo) {
+                          return (
+                            <Video
+                              key={idx}
+                              source={{uri: mediaItem}}
+                              style={{
+                                width: 260,
+                                height: 260,
+                                borderRadius: 10,
+                                marginRight: 20,
+                              }}
+                              controls
+                              resizeMode="cover"
+                            />
+                          );
+                        } else {
+                          return null;
+                        }
+                      })}
+                    </ScrollView>
+                  )}
+
+                  <View className="flex-row items-center mt-2">
+                    <TouchableOpacity
+                      onPress={() =>
+                        toggleCommentLike(
+                          comment._id,
+                          comment.likes.includes(user._id),
+                          index,
+                        )
+                      }
+                      className="flex-row items-center mr-4">
+                      <Ionicons
+                        name={
+                          comment.likes.includes(user._id)
+                            ? 'heart'
+                            : 'heart-outline'
+                        }
+                        size={20}
+                        color={
+                          comment.likes.includes(user._id) ? 'red' : 'white'
+                        }
+                      />
+                      <Text className="ml-2 text-gray-400">
+                        {comment.likes.length || 0} Likes
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate('ReplyDetailsScreen', {
+                          reply_id: comment._id,
+                        })
+                      }
+                      className="ml-1 flex flex-row">
+                      <Ionicons
+                        name="chatbubble-outline"
+                        size={20}
+                        color="white"
+                      />
+                      <Text className="ml-2 text-gray-400">
+                        {comment?.replies?.length || 0} Replies
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-                <Text className="mt-2 text-gray-400">
-                  {comment?.title || 'No Content'}
-                </Text>
-
-                {/* Render Media */}
-                {comment?.media && comment.media.length > 0 && (
-                  <ScrollView horizontal className="my-3 flex flex-row">
-                    {comment.media.map((mediaItem, idx) => {
-                      const isImage = mediaItem.match(/\.(jpeg|jpg|gif|png)$/i);
-                      const isVideo = mediaItem.match(/\.(mp4|mov|avi|mkv)$/i);
-
-                      if (isImage) {
-                        return (
-                          <Image
-                            key={idx}
-                            source={{uri: mediaItem}}
-                            style={{
-                              width: 260,
-                              height: 260,
-                              borderRadius: 10,
-                              marginRight: 20,
-                            }}
-                            resizeMode="cover"
-                          />
-                        );
-                      } else if (isVideo) {
-                        return (
-                          <Video
-                            key={idx}
-                            source={{uri: mediaItem}}
-                            style={{
-                              width: 260,
-                              height: 260,
-                              borderRadius: 10,
-                              marginRight: 20,
-                            }}
-                            controls
-                            resizeMode="cover"
-                          />
-                        );
-                      } else {
-                        return null;
-                      }
-                    })}
-                  </ScrollView>
-                )}
-
-                <View className="flex-row items-center mt-2">
-                  <TouchableOpacity
-                    onPress={() =>
-                      toggleCommentLike(
-                        comment._id,
-                        comment.likes.includes(user._id),
-                        index,
-                      )
-                    }
-                    className="flex-row items-center mr-4">
-                    <Ionicons
-                      name={
-                        comment.likes.includes(user._id)
-                          ? 'heart'
-                          : 'heart-outline'
-                      }
-                      size={20}
-                      color={comment.likes.includes(user._id) ? 'red' : 'white'}
-                    />
-                    <Text className="ml-2 text-gray-400">
-                      {comment.likes.length || 0} Likes
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() =>
-                      navigation.navigate('ReplyDetailsScreen', {
-                        reply_id: comment._id,
-                      })
-                    }
-                    className="ml-1 flex flex-row">
-                    <Ionicons
-                      name="chatbubble-outline"
-                      size={20}
-                      color="white"
-                    />
-                    <Text className="ml-2 text-gray-400">
-                      {comment?.replies?.length || 0} Replies
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text className="mt-4 text-gray-500">No comment yet.</Text>
-          )}
-        </View>
-      </ScrollView>
-
-      {mediaFiles.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-20">
-          {mediaFiles.map((file, index) => (
-            <View key={index} className="mr-2 relative">
-              <Image
-                source={{uri: file.uri}}
-                style={{width: 100, height: 100, borderRadius: 8}}
-              />
-              <TouchableOpacity
-                onPress={() => removeMediaFile(index)}
-                style={{
-                  position: 'absolute',
-                  top: -5,
-                  right: -5,
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  borderRadius: 10,
-                  padding: 2,
-                }}>
-                <Ionicons name="close" size={16} color="white" />
-              </TouchableOpacity>
-            </View>
-          ))}
+              ))
+            ) : (
+              <Text className="mt-4 text-gray-500">No comment yet.</Text>
+            )}
+          </View>
         </ScrollView>
-      )}
 
-      <KeyboardAvoidingView behavior="padding">
-        <View className="p-4 bg-zinc-800 border-t border-gray-700 flex-row items-center gap-2">
-          {!isInputFocused && (
-            <>
-              <TouchableOpacity onPress={() => uploadPostMedia('video')}>
-                <Feather name="video" color={'white'} size={21} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => uploadPostMedia('audio')}>
-                <Feather name="mic" color={'white'} size={21} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="mr-2"
-                onPress={() => uploadPostMedia('image')}>
-                <Ionicons name="images-outline" size={22} color="white" />
-              </TouchableOpacity>
-            </>
-          )}
+        {mediaFiles.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="flex-row p-4 bg-zinc-800 border-t border-gray-700 absolute w-full bottom-20">
+            {mediaFiles.map((file, index) => (
+              <View key={index} className="mr-2 relative">
+                <Image
+                  source={{uri: file.uri}}
+                  style={{width: 100, height: 100, borderRadius: 8}}
+                />
+                <TouchableOpacity
+                  onPress={() => removeMediaFile(index)}
+                  style={{
+                    position: 'absolute',
+                    top: -5,
+                    right: -5,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    borderRadius: 10,
+                    padding: 2,
+                  }}>
+                  <Ionicons name="close" size={16} color="white" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        )}
 
-          <TextInput
-            value={newComment}
-            onChangeText={setNewComment}
-            placeholder="Write a comment..."
-            placeholderTextColor="#999"
-            className="flex-1 bg-zinc-700 text-white p-2 rounded-lg"
-            onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
-          />
+        <KeyboardAvoidingView behavior="padding">
+          <View className="p-4 bg-zinc-800 border-t border-gray-700 flex-row items-center gap-2">
+            {!isInputFocused && (
+              <>
+                <TouchableOpacity onPress={() => uploadPostMedia('video')}>
+                  <Feather name="video" color={'white'} size={21} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => uploadPostMedia('audio')}>
+                  <Feather name="mic" color={'white'} size={21} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="mr-2"
+                  onPress={() => uploadPostMedia('image')}>
+                  <Ionicons name="images-outline" size={22} color="white" />
+                </TouchableOpacity>
+              </>
+            )}
 
-          <TouchableOpacity onPress={handleAddComment} className="ml-3">
-            <Ionicons name="send" size={22} color="white" />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <TextInput
+              value={newComment}
+              onChangeText={setNewComment}
+              placeholder="Write a comment..."
+              placeholderTextColor="#999"
+              className="flex-1 bg-zinc-700 text-white p-2 rounded-lg"
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
+            />
+
+            <TouchableOpacity onPress={handleAddComment} className="ml-3">
+              <Ionicons name="send" size={22} color="white" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+      <SharePopup isVisible={isDeletePopupVisible} onClose={() => setIsDeletePopupVisible(false)} func="deleteComment"/>
+    </>
   );
 };
 

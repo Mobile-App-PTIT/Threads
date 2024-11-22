@@ -31,7 +31,7 @@ const HomeScreen = props => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [extraPaddingTop] = useState(new Animated.Value(0));
   const [isSharePopupVisible, setSharePopupVisible] = useState(false);
-  const [isEditPopupVisible, setEditPopupVisible] = useState(false);
+  const [isDeletePopupVisible, setDeletePopupVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
 
   const refreshingHeight = 100;
@@ -114,7 +114,7 @@ const HomeScreen = props => {
 
   const onEditPress = post_id => {
     setSelectedPostId(post_id);
-    setEditPopupVisible(true);
+    setDeletePopupVisible(true);
   }
 
   const toggleLike = async (postId, liked, index) => {
@@ -382,8 +382,8 @@ const HomeScreen = props => {
         func='share'
       />
       <SharePopup
-        isVisible={isEditPopupVisible}
-        onClose={() => setEditPopupVisible(false)}
+        isVisible={isDeletePopupVisible}
+        onClose={() => setDeletePopupVisible(false)}
         post_id={selectedPostId}
         func='delete'
       />
