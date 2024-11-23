@@ -138,6 +138,47 @@ const login = async (req, res, next) => {
   }
 };
 
+const getFcmToken = async (req, res, next) => {
+  try {
+    const reqUserId = req.userId;
+    const user = await User.findById(reqUserId);
+    if (!user) {
+      const error = new Error('User not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(200).json({ fcmToken: user.fcmToken });
+  } catch (err) {
+    if (!err.statusCode) err.statusCode = 500;
+    next(err);
+  }
+};
+
+const postFcmToken = async (req, res, next) => {
+  try {
+    const { fcmToken } = req.body;
+    if (!isNonEmptyString(fcmToken)) {
+      const error = new Error('FCM token is required.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      const error = new Error('User not found.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    user.fcmToken = fcmToken;
+    await user.save();
+    res.status(200).json({ message: 'FCM token saved.' });
+  } catch (err) {
+    if (!err.statusCode) err.statusCode = 500;
+    next(err);
+  }
+};
+
 const refresh = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
@@ -178,4 +219,4 @@ const refresh = async (req, res, next) => {
   }
 };
 
-module.exports = { signup, login, refresh };
+module.exports = { signup, login, refresh, postFcmToken, getFcmToken };
