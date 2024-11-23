@@ -3,9 +3,10 @@ const socketIo = require('socket.io');
 const redisClient = require('./configs/redis');
 const User = require('./models/user.model');
 const Message = require('./models/message.model');
+const { formatDate } = require('./utils/validators');
 
 
-let socketServer = (app) => {
+let socketServer = (app, notification) => {
   const server = http.createServer(app);
   const io = socketIo(server);
 
@@ -52,37 +53,72 @@ let socketServer = (app) => {
               .select('following followers')
               .populate('following followers', 'name avatar');
 
-            // get last message of each user in following and followers
-            const followingMessages = await Message.find({
+            // get last message of each conversation between user and following/followers by createdAt
+            const followerMessage = await Message.find({
               $or: [
-                { sender: { $in: user.following } },
-                { receiver: { $in: user.following } }
+                { sender_id: user_id, receiver_id: { $in: user.followers.map(f => f._id) } },
+                { receiver_id: user_id, sender_id: { $in: user.followers.map(f => f._id) } }
               ]
-            }).sort({ createdAt: -1 }).limit(1);
-            const followerMessages = await Message.find({
+            }).sort({ created_at: -1 });
+
+            const lastFollowersMessages = user.followers.map(f => {
+              return followerMessage.find(
+                m => m.sender_id.toString() === f._id.toString() ||
+                  m.receiver_id.toString() === f._id.toString()
+              );
+            }).filter(message => message !== undefined);
+
+            const followingMessage = await Message.find({
               $or: [
-                { sender: { $in: user.followers } },
-                { receiver: { $in: user.followers } }
+                { sender_id: user_id, receiver_id: { $in: user.following.map(f => f._id) } },
+                { receiver_id: user_id, sender_id: { $in: user.following.map(f => f._id) } }
               ]
-            }).sort({ createdAt: -1 }).limit(1);
+            }).sort({ created_at: -1 });
+
+            const lastFollowingMessages = user.following.map(f => {
+              return followingMessage.find(
+                m => m.sender_id.toString() === f._id.toString() ||
+                  m.receiver_id.toString() === f._id.toString()
+              );
+            }).filter(message => message !== undefined);
+
+            // console.log(followerMessage);
+            // console.log(lastFollowingMessages);
 
             const data = [];
 
             for (const u of user.following) {
-              const lastMessage = followingMessages.find(m => m.sender.toString() === u._id.toString() || m.receiver.toString() === u._id.toString());
+              const lastMessage = lastFollowingMessages.find(
+                m =>
+                  m.sender_id && (
+                    m.sender_id.toString() === u._id.toString() ||
+                    m.receiver_id.toString() === u._id.toString()
+                  )
+              );
+
               data.push({
                 id: u._id,
                 fullName: u.name,
                 isOnline: userSocketMap.has(u._id.toString()),
                 userImg: u.avatar,
+                status: lastMessage?.status || '',
+                isMe: lastMessage?.sender_id.toString() === user_id.toString(),
                 lastSeen: lastMessage?.seenAt || '',
+                typeMessage: lastMessage?.type || '',
                 lastMessage: lastMessage?.content || '',
-                lastMessageTime: lastMessage?.createdAt || ''
+                lastMessageTime: lastMessage?.created_at ? formatDate(lastMessage.created_at) : ''
               });
             }
 
             for (const u of user.followers) {
-              const lastMessage = followerMessages.find(m => m.sender.toString() === u._id.toString() || m.receiver.toString() === u._id.toString());
+              const lastMessage = lastFollowersMessages.find(
+                m =>
+                  m.sender_id && (
+                    m.sender_id.toString() === u._id.toString() ||
+                    m.receiver_id.toString() === u._id.toString()
+                  )
+              );
+
               // check if user is already in data
               const index = data.findIndex(d => d.id === u._id);
               if (index !== -1) {
@@ -91,14 +127,17 @@ let socketServer = (app) => {
                   fullName: u.name,
                   isOnline: userSocketMap.has(u._id.toString()),
                   userImg: u.avatar,
+                  status: lastMessage?.status || '',
+                  isMe: lastMessage?.sender_id.toString() === user_id.toString(),
                   lastSeen: lastMessage?.seenAt || '',
+                  typeMessage: lastMessage?.type || '',
                   lastMessage: lastMessage?.content || '',
-                  lastMessageTime: lastMessage?.createdAt || ''
+                  lastMessageTime: lastMessage?.created_at ? formatDate(lastMessage.created_at) : ''
                 });
               }
             }
 
-            console.log(data);
+            // console.log(data);
 
             socket.emit('getFollowingAndFollowers', data);
           }
@@ -122,35 +161,41 @@ let socketServer = (app) => {
           });
           await message.save();
 
-          if (userSocketMap.has(user._id)) {
+          if (userSocketMap.has(user._id.toString())) {
+
+            // send notification to receiver
+
+            notification.messaging().sendToDevice(user.deviceToken, {
+              notification: {
+                title: 'New message',
+                body: text
+              }
+            }).then(() => {
+              console.log('Notification sent');
+            }).catch((error) => {
+              console.log('Notification error:', error);
+            });
+
             // send to ChatScreen
-            io.to(userSocketMap.get(user._id)).emit('receiveMessage', {
+            io.to(userSocketMap.get(user._id.toString())).emit('receiveMessage', {
               _id: message._id,
               text: message.content,
+              status: message?.status || '',
               createdAt: message.created_at,
               user: {
                 _id: message.receiver_id
               }
             });
 
-            // send to ListMessageScreen
-            const lastMessage = await Message.findOne({
-              $or: [
-                { sender_id: message.sender_id, receiver_id: message.receiver_id },
-                { sender_id: message.receiver_id, receiver_id: message.sender_id }
-              ]
-            }).sort({ created_at: -1 });
-            const user = await User.findById(message.sender_id).select('name avatar');
-            const data = {
-              id: user._id,
-              fullName: user.name,
-              isOnline: userSocketMap.has(user._id.toString()),
-              userImg: user.avatar,
-              lastSeen: lastMessage?.seenAt || '',
-              lastMessage: lastMessage?.content || '',
-              lastMessageTime: lastMessage?.created_at || ''
-            };
-            socket.emit('newLastMessage', data);
+            // send to ListMessageScreen of receiver
+            io.to(userSocketMap.get(user._id.toString())).emit('newLastMessage', {
+              id: message.sender_id,
+              status: message?.status || '',
+              isMe: false,
+              lastSeen: message?.seenAt || '',
+              lastMessage: message?.content || '',
+              lastMessageTime: message?.created_at ? formatDate(message.created_at) : ''
+            });
           }
         } catch (error) {
           console.log(error);
