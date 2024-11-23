@@ -7,11 +7,14 @@ const compression = require('compression');
 const initWebRoutes = require('./routes/init.route');
 const User = require('./models/user.model');
 const socketServer = require('./socket');
+const notification = require('./notification');
 require('dotenv').config();
 
 const app = express();
 
-const server = socketServer(app);
+const notify = notification();
+
+const server = socketServer(app, notify);
 
 app.use(express.json());
 app.use(cookieParser());
