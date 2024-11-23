@@ -5,7 +5,7 @@ const { Schema, model, Types } = mongoose;
 const messageSchema = new Schema({
   type: {
     type: String,
-    enum: ['text', 'image', 'audio', 'file'],
+    enum: ['text', 'image'],
     required: true
   },
   content: {
