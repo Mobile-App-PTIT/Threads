@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, Image, FlatList, ScrollView, StyleSheet } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import Video from 'react-native-video';
 
 const UserReplied = ({ replies, ListHeaderComponent }) => {
@@ -106,6 +108,11 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
                       )}
                     </ScrollView>
                   )}
+                  <View className='flex flex-row gap-2 pt-2'>
+                    <Ionicons name="heart-outline" size={20} color="white" />
+                    <Ionicons name="chatbubble-outline" size={18} color="white" />
+                    <Feather name="share-2" size={18} color="white" />
+                  </View>
                 </View>
               </View>
             ))
@@ -113,6 +120,7 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
             <Text style={styles.noRepliesText}>No replies yet.</Text>
           )}
         </View>
+        
       </View>
     );
   };
@@ -194,9 +202,10 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   replyContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#3a3a3c',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
   },
   replyAvatar: {
     width: 36,
@@ -206,7 +215,7 @@ const styles = StyleSheet.create({
   },
   replyContent: {
     flex: 1,
-    backgroundColor: '#333',
+    backgroundColor: '#2c2c2e',
     padding: 12,
     borderRadius: 8,
   },
