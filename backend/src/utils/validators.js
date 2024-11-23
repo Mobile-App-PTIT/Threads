@@ -1,9 +1,9 @@
 // utils/validators.js
-const User = require("../models/user.model");
+const User = require('../models/user.model');
 
 // Check if a value is a non-empty string
 const isNonEmptyString = (value) => {
-  return typeof value === "string" && value.trim().length > 0;
+  return typeof value === 'string' && value.trim().length > 0;
 };
 
 // Check if a value is a valid email
@@ -30,14 +30,21 @@ const isEmailInUse = async (email) => {
 
 // Check if a value is a number
 const isNumber = (value) => {
-  return typeof value === "number" && !isNaN(value);
+  return typeof value === 'number' && !isNaN(value);
 };
 
 // Check if a string's length is within a specified range
 const isLength = (value, { min = 0, max = Infinity }) => {
   return (
-    typeof value === "string" && value.length >= min && value.length <= max
+    typeof value === 'string' && value.length >= min && value.length <= max
   );
+};
+
+
+// Format a date string to 'YYYY-MM-DD HH:MM:SS'
+const formatDate = (date) => {
+  const isoString = new Date(date).toISOString();
+  return isoString.replace('T', ' ').substring(0, 19);
 };
 
 // Add more validation functions as needed
@@ -48,4 +55,5 @@ module.exports = {
   isEmailInUse,
   isNumber,
   isLength,
+  formatDate
 };
