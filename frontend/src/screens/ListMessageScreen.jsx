@@ -39,7 +39,7 @@ const ListMessageScreen = ({ navigation }) => {
       console.log('[Client] Get following and followers');
       if (JSON.stringify(data) !== JSON.stringify(users)) {
         dispatch({ type: 'getFollowingAndFollowersSuccess', payload: data });
-        console.log('Data:', data);
+        // console.log('Data:', data);
       }
     });
 
@@ -89,8 +89,10 @@ const ListMessageScreen = ({ navigation }) => {
             <Text className="text-gray-300 font-semibold mb-1 text-[14px]">
               {item.fullName}
             </Text>
-            <Text className="text-gray-500">
-              {item.lastMessage !== '' ? item.lastMessage : 'Start a new chat'}
+
+            <Text
+              className={`${item.status === 'sent' && !item.isMe ? 'font-bold text-white' : 'text-gray-500'}`}>
+              {item.lastMessage !== '' ? item.isMe ? 'You: ' + item.lastMessage : item.lastMessage : 'Start new chat'}
             </Text>
           </View>
           <View className="absolute right-[4px] items-center">

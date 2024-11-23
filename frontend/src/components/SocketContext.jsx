@@ -1,5 +1,4 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { AppState } from 'react-native';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
@@ -34,7 +33,7 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('newLastMessage', (message) => {
-        console.log('New message:', message);
+        console.log('[Client] New message:', message);
         dispatch({ type: 'newLastMessage', payload: message });
       });
 
@@ -46,7 +45,7 @@ export const SocketProvider = ({ children }) => {
         }
       };
 
-      const subscription = AppState.addEventListener('change', handleAppStateChange);
+      // const subscription = AppState.addEventListener('change', handleAppStateChange);
 
       return () => {
         newSocket.off('notification');
@@ -54,7 +53,7 @@ export const SocketProvider = ({ children }) => {
         newSocket.off('offline');
         newSocket.off('newLastMessage');
         newSocket.close();
-        subscription.remove();
+        // subscription.remove();
       };
     };
 
