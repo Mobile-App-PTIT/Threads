@@ -528,7 +528,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
         isVisible={isDeletePopupVisible} 
         onClose={() => setIsDeletePopupVisible(false)} 
         post_id={selectedComment}
-        func="deleteReply"/>
+        func="deleteComment"/>
     </>
   );
 };

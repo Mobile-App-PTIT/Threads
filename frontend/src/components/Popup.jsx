@@ -87,8 +87,6 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
     }
   }
 
-  const handleDeleteReply = async () => {}
-
   return (
     <Modal transparent visible={isVisible} animationType="none">
       <View style={styles.overlay}>

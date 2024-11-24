@@ -1,13 +1,10 @@
 import React from 'react';
-import { View, Text, Image, FlatList, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Image, FlatList, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import Video from 'react-native-video';
 
 const UserReplied = ({ replies, ListHeaderComponent }) => {
-  console.log(replies);
-
-  // Group replies by post_id
   const groupedData = {};
   replies.forEach((reply) => {
     const postId = reply.post_id._id;
@@ -21,109 +18,100 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
   });
   const postsWithReplies = Object.values(groupedData);
 
-  // Helper function to check if the media URL is an image
-  const isImage = (url) => {
-    return /\.(jpeg|jpg|gif|png)$/i.test(url);
-  };
+  const isImage = (url) => /\.(jpeg|jpg|gif|png)$/i.test(url);
 
-  const renderPost = ({ item }) => {
-    console.log('Rendering Post:', item.post.title);
-    console.log('Replies:', item.replies);
-
-    return (
-      <View style={styles.postContainer}>
-        {/* Post Information */}
-        <View style={styles.postHeader}>
-          <Image
-            source={{
-              uri:
-                item.post.user_id?.avatar ||
-                'https://example.com/default-avatar.jpg',
-            }}
-            style={styles.postAvatar}
-          />
-          <View>
-            <Text style={styles.postAuthor}>{item.post.user_id.name}</Text>
-            <Text style={styles.postDate}>
-              {new Date(item.post.createdAt).toLocaleDateString()}
-            </Text>
-          </View>
+  const renderPost = ({ item }) => (
+    <View className="bg-zinc-900 p-5 mb-5 border border-b border-gray-700 rounded-lg">
+      {/* Post Information */}
+      <View className="flex-row items-center mb-3">
+        <Image
+          source={{
+            uri: item.post.user_id?.avatar || 'https://example.com/default-avatar.jpg',
+          }}
+          className="w-10 h-10 rounded-full"
+        />
+        <View className="ml-3">
+          <Text className="text-white font-bold">{item.post.user_id.name}</Text>
+          <Text className="text-gray-500 text-sm">
+            {new Date(item.post.createdAt).toLocaleDateString()}
+          </Text>
         </View>
+      </View>
 
-        {/* Post Content */}
-        <Text style={styles.postTitle}>{item.post.title}</Text>
+      {/* Post Title */}
+      <Text className="text-white mb-3 font-semibold">{item.post.title}</Text>
 
-        {item.post.media && item.post.media.length > 0 && (
-          <ScrollView horizontal style={styles.mediaContainer}>
-            {item.post.media.map((mediaUrl, index) =>
-              isImage(mediaUrl) ? (
-                <Image
-                  key={index}
-                  source={{ uri: mediaUrl }}
-                  style={styles.mediaImage}
-                />
-              ) : (
-                <Video
-                  key={index}
-                  source={{ uri: mediaUrl }}
-                  style={styles.mediaVideo}
-                  controls={true}
-                  resizeMode="cover"
-                />
-              )
-            )}
-          </ScrollView>
-        )}
+      {/* Post Media */}
+      {item.post.media?.length > 0 && (
+        <ScrollView horizontal className="mt-2">
+          {item.post.media.map((mediaUrl, index) =>
+            isImage(mediaUrl) ? (
+              <Image
+                key={index}
+                source={{ uri: mediaUrl }}
+                className="w-60 h-60 rounded-lg mr-5"
+                resizeMode="cover"
+              />
+            ) : (
+              <Video
+                key={index}
+                source={{ uri: mediaUrl }}
+                className="w-60 h-60 rounded-lg mr-5"
+                controls
+                resizeMode="cover"
+              />
+            )
+          )}
+        </ScrollView>
+      )}
 
-        {/* Display Replies */}
-        <View style={styles.repliesContainer}>
-          {item.replies && item.replies.length > 0 ? (
-            item.replies.map((reply) => (
-              <View key={reply._id} style={styles.replyContainer}>
-                <Image
-                  source={{ uri: reply.user_id.avatar }}
-                  style={styles.replyAvatar}
-                />
-                <View style={styles.replyContent}>
-                  <Text style={styles.replyAuthor}>{reply.user_id.name}</Text>
-                  <Text style={styles.replyText}>{reply.title}</Text>
-                  {reply.media && reply.media.length > 0 && (
-                    <ScrollView horizontal style={styles.mediaContainer}>
-                      {reply.media.map((mediaUrl, index) =>
-                        isImage(mediaUrl) ? (
-                          <Image
-                            key={index}
-                            source={{ uri: mediaUrl }}
-                            style={styles.mediaImage}
-                          />
-                        ) : (
-                          <Video
-                            key={index}
-                            source={{ uri: mediaUrl }}
-                            style={styles.mediaVideo}
-                            controls={true}
-                            resizeMode="cover"
-                          />
-                        )
-                      )}
-                    </ScrollView>
-                  )}
-                  <View className='flex flex-row gap-2 pt-2'>
-                    <Ionicons name="heart-outline" size={20} color="white" />
-                    <Ionicons name="chatbubble-outline" size={18} color="white" />
-                    <Feather name="share-2" size={18} color="white" />
-                  </View>
+      {/* Replies Section */}
+      <View className="mt-5">
+        {item.replies?.length > 0 ? (
+          item.replies.map((reply) => (
+            <View key={reply._id} className="flex-row items-start mb-5">
+              <Image
+                source={{ uri: reply.user_id.avatar }}
+                className="w-9 h-9 rounded-full mr-3"
+              />
+              <View className="bg-gray-800 p-4 rounded-lg flex-1">
+                <Text className="text-white font-bold">{reply.user_id.name}</Text>
+                <Text className="text-gray-400 text-sm mt-1">{reply.title}</Text>
+                {reply.media?.length > 0 && (
+                  <ScrollView horizontal className="mt-2">
+                    {reply.media.map((mediaUrl, index) =>
+                      isImage(mediaUrl) ? (
+                        <Image
+                          key={index}
+                          source={{ uri: mediaUrl }}
+                          className="w-40 h-40 rounded-lg mr-3"
+                        />
+                      ) : (
+                        <Video
+                          key={index}
+                          source={{ uri: mediaUrl }}
+                          className="w-40 h-40 rounded-lg mr-3"
+                          controls
+                          resizeMode="cover"
+                        />
+                      )
+                    )}
+                  </ScrollView>
+                )}
+                <View className="flex-row gap-4 mt-2">
+                  <Ionicons name="heart-outline" size={20} color="white" />
+                  <Ionicons name="chatbubble-outline" size={18} color="white" />
+                  <Feather name="share-2" size={18} color="white" />
                 </View>
               </View>
-            ))
-          ) : (
-            <Text style={styles.noRepliesText}>No replies yet.</Text>
-          )}
-        </View>
-        
+            </View>
+          ))
+        ) : (
+          <Text className="text-gray-400 italic">No replies yet.</Text>
+        )}
       </View>
-    );
-  };
+    </View>
+  );
 
   return (
     <FlatList
@@ -132,112 +120,12 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
       keyExtractor={(item) => item.post._id.toString()}
       renderItem={renderPost}
       ListEmptyComponent={
-        <Text style={styles.emptyText}>Nothing here</Text>
+        <Text className="text-white mt-5 mx-5">Nothing here</Text>
       }
-      contentContainerStyle={styles.listContentContainer}
-      style={styles.list}
+      className="bg-zinc-900"
+      contentContainerStyle={{ paddingBottom: 20 }}
     />
   );
 };
-
-const styles = StyleSheet.create({
-  list: {
-    backgroundColor: '#1c1c1e',
-  },
-  listContentContainer: {
-    paddingBottom: 20,
-    paddingHorizontal: 10,
-  },
-  postContainer: {
-    backgroundColor: '#2c2c2e',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  postAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
-  },
-  postAuthor: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  postDate: {
-    color: '#888',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  postTitle: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  mediaContainer: {
-    marginTop: 8,
-  },
-  mediaImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  mediaVideo: {
-    width: 120,
-    height: 120,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  repliesContainer: {
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#3a3a3c',
-    paddingTop: 12,
-  },
-  replyContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#3a3a3c',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  replyAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 12,
-  },
-  replyContent: {
-    flex: 1,
-    backgroundColor: '#2c2c2e',
-    padding: 12,
-    borderRadius: 8,
-  },
-  replyAuthor: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  replyText: {
-    color: '#aaa',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  noRepliesText: {
-    color: '#aaa',
-    fontStyle: 'italic',
-  },
-  emptyText: {
-    color: '#fff',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-});
 
 export default UserReplied;
