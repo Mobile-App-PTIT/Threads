@@ -1,5 +1,5 @@
 const Reply = require('../models/reply.model');
-const { uploadMedia } = require('../configs/cloudinary');
+const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
 // const redisClient = require('../configs/redis');
 
 const createReplyToReply = async (req, res, next) => {
@@ -113,8 +113,51 @@ const likeOrUnlikeReplies = async (req, res, next) => {
     }
 }
 
+const deleteReply = async (req, res, next) => {
+    try {
+        const { reply_id } = req.params;
+
+        // Delete reply and nested replies
+        await deleteReplyAndNested(reply_id);
+
+        res.status(200).json({
+            message: "Reply deleted successfully",
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+const deleteReplyAndNested = async (reply_id) => {
+    const reply = await Reply.findById(reply_id);
+    if (!reply) return;
+
+    // Recursively delete nested replies
+    if (reply.replies && reply.replies.length > 0) {
+        await Promise.all(
+            reply.replies.map(async (nestedReply) => {
+                await deleteReplyAndNested(nestedReply);
+            })
+        );
+    }
+
+    // Delete associated media if any
+    if (reply.media && reply.media.length > 0) {
+        await Promise.all(
+            reply.media.map(async (mediaUrl) => {
+                await deleteMedia(mediaUrl); 
+            })
+        );
+    }
+
+    // Delete the reply itself
+    await Reply.deleteOne({ _id: reply_id });
+};
+
+
 module.exports = {
     createReplyToReply,
     getRepliesOfReply,
     likeOrUnlikeReplies,
+    deleteReply,
 }

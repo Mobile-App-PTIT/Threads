@@ -20,13 +20,14 @@ import uri from '../../redux/uri';
 import getTimeDuration from '../common/TimeGenerator';
 import Video from 'react-native-video';
 import {Audio} from 'expo-av';
-import SharePopup from '../components/SharePopup';
+import Popup from '../components/Popup';
 
 const ReplyDetailsScreen = ({navigation, route}) => {
   const {reply_id} = route.params;
   const {user} = useSelector(state => state.user);
   const [replies, setReplies] = useState([]);
   const [comment, setComment] = useState(null);
+  const [selectedComment, setSelectedComment] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isDeletePopupVisible, setIsDeletePopupVisible] = useState(false);
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -145,7 +146,8 @@ const ReplyDetailsScreen = ({navigation, route}) => {
     setMediaFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
-  const onPressDelete = () => {
+  const onPressDelete = (comment_id) => {
+    setSelectedComment(comment_id);
     setIsDeletePopupVisible(true);
   };
 
@@ -522,7 +524,11 @@ const ReplyDetailsScreen = ({navigation, route}) => {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-      <SharePopup isVisible={isDeletePopupVisible} onClose={() => setIsDeletePopupVisible(false)} func="deleteReply"/>
+      <Popup 
+        isVisible={isDeletePopupVisible} 
+        onClose={() => setIsDeletePopupVisible(false)} 
+        post_id={selectedComment}
+        func="deleteReply"/>
     </>
   );
 };

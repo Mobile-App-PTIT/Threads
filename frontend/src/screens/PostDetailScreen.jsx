@@ -18,7 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import Video from 'react-native-video';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SharePopup from '../components/SharePopup';
+import Popup from '../components/Popup';
 
 const PostDetailsScreen = ({navigation, route}) => {
   const post_id = route.params.post_id;
@@ -26,6 +26,7 @@ const PostDetailsScreen = ({navigation, route}) => {
   const [postData, setPostData] = useState({});
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [selectedComment, setSelectedComment] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isDeletePopupVisible, setIsDeletePopupVisible] = useState(false);
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -175,7 +176,8 @@ const PostDetailsScreen = ({navigation, route}) => {
     setMediaFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
-  const onPressDelete = () => {
+  const onPressDelete = (comment_id) => {
+    setSelectedComment(comment_id);
     setIsDeletePopupVisible(true);
   };
 
@@ -465,7 +467,11 @@ const PostDetailsScreen = ({navigation, route}) => {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-      <SharePopup isVisible={isDeletePopupVisible} onClose={() => setIsDeletePopupVisible(false)} func="deleteComment"/>
+      <Popup 
+        isVisible={isDeletePopupVisible} 
+        onClose={() => setIsDeletePopupVisible(false)}
+        post_id={selectedComment}
+        func="deleteComment"/>
     </>
   );
 };

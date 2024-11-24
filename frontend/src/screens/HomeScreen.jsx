@@ -19,7 +19,7 @@ import {useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getTimeDuration from '../common/TimeGenerator';
-import SharePopup from '../components/SharePopup';
+import Popup from '../components/Popup';
 
 const HomeScreen = props => {
   const navigation = useNavigation();
@@ -375,17 +375,17 @@ const HomeScreen = props => {
           // }
         />
       </SafeAreaView>
-      <SharePopup
+      <Popup
         isVisible={isSharePopupVisible}
         onClose={() => setSharePopupVisible(false)}
         post_id={selectedPostId}
         func='share'
       />
-      <SharePopup
+      <Popup
         isVisible={isDeletePopupVisible}
         onClose={() => setDeletePopupVisible(false)}
         post_id={selectedPostId}
-        func='delete'
+        func='deletePost'
       />
     </>
   );

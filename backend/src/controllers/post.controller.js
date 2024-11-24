@@ -2,7 +2,6 @@ const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
 const Notification = require('../models/notification.model');
-const mongoose = require('mongoose');
 const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
 const redisClient = require('../configs/redis');
 
@@ -144,32 +143,29 @@ const updatePost = async (req, res, next) => {
 }
 
 const deletePost = async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
         const { post_id } = req.params;
-        const post = await Post.findByIdAndDelete({ _id: post_id }).session(session);
-        await User.updateMany({
-            share: { $elemMatch: { post_id } }
-        }, {
-            $pull: { share: { post_id } }
-        }).session(session);
-        await Reply.deleteMany({ post_id }).session(session);
-        await deleteMedia(post.media).session(session);
 
-        await session.commitTransaction();
-        session.endSession();
+        const post = await Post.findByIdAndDelete(post_id);
+
+        await User.updateMany(
+            { share: { $elemMatch: { post_id } } },
+            { $pull: { share: { post_id } } }
+        );
+
+        await Reply.deleteMany({ post_id });
+
+        if(post.media && post.media > 0) await deleteMedia(post.media);
 
         res.status(200).json({
             message: "Post deleted successfully",
         });
-    } catch(err) {
-        await session.abortTransaction();
-        session.endSession();
+    } catch (err) {
         next(err);
     }
-}
+};
+
+
 
 // Like a post
 const likeOrUnlikePost = async (req, res, next) => {
@@ -365,51 +361,6 @@ const updateReply = async (req, res, next) => {
     }
 }
 
-const deleteReply = async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const { reply_id } = req.params;
-
-        await deleteReplyAndNested(reply_id, session);
-
-        await session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({ 
-            message: "Reply deleted successfully",
-        });
-    } catch (err) {
-        await session.abortTransaction();
-        session.endSession();
-        next(err);
-    }
-}
-
-const deleteReplyAndNested = async (reply_id, session) => {
-    const reply = await Reply.findById(reply_id).session(session);
-    if(!reply) return;
-
-    if(reply.replies && reply.replies.length > 0) {
-        await Promise.all(
-            reply.replies.map(async (nestedReply) => {
-                await deleteReplyAndNested(nestedReply, session);
-            })
-        );
-    }
-
-    if(reply.media && reply.media.length > 0) {
-        await Promise.all(
-            reply.media.map(async (mediaUrl) => {
-                await deleteMedia([mediaUrl]);
-            }
-        ));
-    }
-
-    await Reply.deleteOne({ _id: reply_id }).session(session);
-}
-
 // Notification
 const notifyPostOwner = async ({ post_id, type }) => {
     try {
@@ -448,5 +399,4 @@ module.exports = {
     publicOrPrivateSharePost,
     createReply,
     updateReply,
-    deleteReply,
 }

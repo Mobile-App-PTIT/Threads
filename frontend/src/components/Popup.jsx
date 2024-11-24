@@ -51,12 +51,11 @@ const SharePopup = ({isVisible, onClose, post_id, func}) => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeletePost = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.delete(
-        `${uri}/post/${post_id}/delete`,
-        {},
+      await axios.delete(
+        `${uri}/post/${post_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -70,7 +69,18 @@ const SharePopup = ({isVisible, onClose, post_id, func}) => {
   };
 
   const handleDeleteComment = async () => {
-
+    try {
+      const token = await AsyncStorage.getItem('token');  
+      const reply_id = post_id;
+      await axios.delete(`${uri}/reply/${reply_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      onClose();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   const handleDeleteReply = async () => {}
@@ -96,14 +106,14 @@ const SharePopup = ({isVisible, onClose, post_id, func}) => {
               </TouchableOpacity>
             </>
           )}
-          {func === 'delete' && (
+          {func === 'deletePost' && (
             <>
               <Text style={styles.modalText}>
                 Do you want to delete this post?
               </Text>
               <TouchableOpacity
                 style={styles.confirmButton}
-                onPress={handleDelete}>
+                onPress={handleDeletePost}>
                 <Text style={styles.confirmButtonText}>Yes</Text>
               </TouchableOpacity>
             </>

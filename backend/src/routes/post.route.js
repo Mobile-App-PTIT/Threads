@@ -24,6 +24,6 @@ router.get('/user/:user_id/share', postController.getUserSharePosts);
 //Reply to a post
 router.post('/:post_id/reply', isAuth, upload.array('mediaFiles'), postController.createReply);
 router.patch('/:post_id/reply/:reply_id', isAuth, postController.updateReply);
-router.delete('/:post_id/reply/:reply_id', isAuth, postController.deleteReply);
+// router.delete('/:post_id/reply/:reply_id', isAuth, postController.deleteReply);
 
 module.exports = router;
