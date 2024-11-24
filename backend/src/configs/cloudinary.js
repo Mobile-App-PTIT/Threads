@@ -8,6 +8,7 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  timeout: 120000
 });
 
 const storage = multer.memoryStorage();
@@ -29,7 +30,7 @@ exports.upload = multer({
   fileFilter: fileFilter,
 });
 
-exports.uploadMedia = async (fileData, resourceType = 'image') => {
+async function uploadMedia(fileData, resourceType = 'image', retries = 3, delay = 1000) {
   try {
     const result = await cloudinary.uploader.upload(fileData, {
       folder: 'threads',
@@ -42,10 +43,18 @@ exports.uploadMedia = async (fileData, resourceType = 'image') => {
       resource_type: resourceType,
     };
   } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
-    throw error;
+    if (retries > 0) {
+      console.log(`Retrying upload... (${retries} retries left)`);
+      await new Promise(res => setTimeout(res, delay));
+      return uploadMedia(fileData, resourceType, retries - 1, delay * 2);
+    } else {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
   }
 };
+
+exports.uploadMedia = uploadMedia;
 
 exports.deleteMedia = async (mediaPath, resourceType = 'image') => {
   try {
