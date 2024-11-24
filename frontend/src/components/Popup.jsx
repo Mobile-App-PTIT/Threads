@@ -82,6 +82,7 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
         },
       })
       onClose();
+      // cho nay la reload goi ham tu component cha
       if (typeof onUpdated === 'function') {
         onUpdated();
       }
