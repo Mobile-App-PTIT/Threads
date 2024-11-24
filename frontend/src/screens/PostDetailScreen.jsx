@@ -477,7 +477,8 @@ const PostDetailsScreen = ({navigation, route}) => {
         isVisible={isDeletePopupVisible} 
         onClose={() => setIsDeletePopupVisible(false)}
         post_id={selectedComment}
-        func="deleteComment"/>
+        func="deleteComment"
+        onUpdated={fetchPostAndComments}/>
     </>
   );
 };
