@@ -1,4 +1,5 @@
 const Reply = require('../models/reply.model');
+const Post = require('../models/post.model');
 const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
 // const redisClient = require('../configs/redis');
 
@@ -119,6 +120,22 @@ const deleteReply = async (req, res, next) => {
 
         // Delete reply and nested replies
         await deleteReplyAndNested(reply_id);
+
+        await Post.updateOne({
+            replies: reply_id,
+        }, {
+            $pull: {
+                replies: reply_id,
+            }
+        })
+
+        await Reply.updateMany({
+            replies: reply_id,
+        }, {
+            $pull: {
+                replies: reply_id,
+            }
+        })
 
         res.status(200).json({
             message: "Reply deleted successfully",
