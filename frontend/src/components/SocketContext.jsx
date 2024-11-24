@@ -17,10 +17,10 @@ export const SocketProvider = ({ children }) => {
       });
       setSocket(newSocket);
 
-      newSocket.on('notification', (message) => {
-        console.log('Received notification:', message);
-        // Handle the notification message as needed
-      });
+      // newSocket.on('notification', (message) => {
+      //   console.log('Received notification:', message);
+      //   // Handle the notification message as needed
+      // });
 
       newSocket.on('online', (userId) => {
         console.log('User online:', userId);
@@ -48,7 +48,7 @@ export const SocketProvider = ({ children }) => {
       // const subscription = AppState.addEventListener('change', handleAppStateChange);
 
       return () => {
-        newSocket.off('notification');
+        // newSocket.off('notification');
         newSocket.off('online');
         newSocket.off('offline');
         newSocket.off('newLastMessage');

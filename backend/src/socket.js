@@ -22,10 +22,6 @@ let socketServer = (app, notification) => {
         if (!userSocketMap.has(user_id)) {
           userSocketMap.set(user_id, socket.id);
 
-          // await redisClient.subscribe(`notifications:${userId}`, (message) => {
-          //   socket.emit('notification', message);
-          // });
-
           // send online status to all friends
           const user = await User.findById(user_id).select('following followers');
           for (const u of user.following) {
@@ -165,15 +161,22 @@ let socketServer = (app, notification) => {
 
             // send notification to receiver
 
-            notification.messaging().sendToDevice(user.deviceToken, {
-              notification: {
-                title: 'New message',
-                body: text
-              }
-            }).then(() => {
-              console.log('Notification sent');
-            }).catch((error) => {
-              console.log('Notification error:', error);
+            const receiverFcmToken = await User.findById(user._id).select('fcmToken');
+
+            const messagePayload = {
+                notification: {
+                    title: 'New message',
+                    body: text
+                },
+                token: receiverFcmToken.fcmToken
+            }
+
+            notification.messaging().send(messagePayload)
+            .then((response) => {
+                console.log('Successfully sent message:', response);
+            })
+            .catch((error) => {
+                console.log('Error sending message:', error);
             });
 
             // send to ChatScreen

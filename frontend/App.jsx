@@ -12,6 +12,7 @@ import messaging from '@react-native-firebase/messaging';
 import axios from 'axios';
 import uri from './redux/uri';
 import PushNotification from 'react-native-push-notification';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function App() {
   // useEffect(() => {
@@ -37,8 +38,6 @@ const AppStack = () => {
   const { isAuthenticated, isLoading } = useSelector(state => state.user);
   const [isLogin, setIsLogin] = useState(true);
 
-
-
   useEffect(() => {
     // Yêu cầu quyền nhận thông báo
     const requestPermission = async () => {
@@ -49,24 +48,32 @@ const AppStack = () => {
             authStatus === messaging.AuthorizationStatus.PROVISIONAL;
         if (enabled) {
           console.log('Authorization status:', authStatus);
+
           // Push notification example
-          PushNotification.localNotification({
-            channelId: 'default_channel', // ID kênh phải trùng
-            title: 'Welcome', // Tiêu đề thông báo
-            message: 'Welcome to the app', // Nội dung thông báo
-            bigText: 'Welcome to the app', // Nội dung thông báo chi tiết
-            playSound: true, // Cho phép phát âm thanh
-            soundName: 'default', // Tên âm thanh mặc định
-            priority: 'high' // Độ ưu tiên thông báo
-          })
+          // PushNotification.localNotification({
+          //   channelId: 'default_channel', // ID kênh phải trùng
+          //   title: 'Welcome', // Tiêu đề thông báo
+          //   message: 'Welcome to the app', // Nội dung thông báo
+          //   bigText: 'Welcome to the app', // Nội dung thông báo chi tiết
+          //   playSound: true, // Cho phép phát âm thanh
+          //   soundName: 'default', // Tên âm thanh mặc định
+          //   priority: 'high' // Độ ưu tiên thông báo
+          // })
           if (isAuthenticated) {
             // Lấy token FCM từ server
-            const data = await axios.get(`${uri}/auth/fcm-token`);
+            const token = await AsyncStorage.getItem('token');
+              const config = {
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`
+                }
+              }
+            const data = await axios.get(`${uri}/auth/fcm-token`, config);
             const status = data.status;
             if (status === 200 && data.data.fcmToken === '') {
               const token = await messaging().getToken();
               console.log('Token:', token);
-              const response = await axios.post(`${uri}/auth/fcm-token`, { fcmToken: token });
+              const response = await axios.post(`${uri}/auth/fcm-token`, { fcmToken: token }, config);
             }
           }
         }
@@ -100,7 +107,14 @@ const AppStack = () => {
     const unsubscribeOnTokenRefresh = messaging().onTokenRefresh(async token => {
       console.log('Token refreshed:', token);
       if (isAuthenticated) {
-        await axios.post(`${uri}/auth/fcm-token`, { fcmToken: token });
+        const token = await AsyncStorage.getItem('token');
+          const config = {
+              headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`
+              }
+          }
+        await axios.post(`${uri}/auth/fcm-token`, { fcmToken: token }, config);
       }
     });
 
