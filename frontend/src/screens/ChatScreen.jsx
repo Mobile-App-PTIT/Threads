@@ -1,15 +1,26 @@
-import { ActivityIndicator, Image, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image, Linking,
+  SafeAreaView,
+  Text,
+  TextInput,
+  ToastAndroid,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import { Bubble, GiftedChat } from 'react-native-gifted-chat';
-import { useContext, useEffect, useState } from 'react';
+import {Bubble, GiftedChat} from 'react-native-gifted-chat';
+import {useContext, useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import uri from '../../redux/uri';
 import Toast from 'react-native-toast-message';
-import { SocketContext } from '../components/SocketContext';
-import { useDispatch, useSelector } from 'react-redux';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {SocketContext} from '../components/SocketContext';
+import {useDispatch, useSelector} from 'react-redux';
+import ImagePicker from "react-native-image-crop-picker";
+import RNFS from 'react-native-fs';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 const ChatScreen = ({ navigation, route }) => {
   const { userId, userName, userImg } = route.params;
@@ -98,7 +109,7 @@ const ChatScreen = ({ navigation, route }) => {
         }
 
         for (let i = 0; i < data.length; i++) {
-          const message = {
+          let message = {
             _id: data[i]._id,
             text: data[i].content,
             createdAt: new Date(data[i].created_at),
@@ -106,6 +117,12 @@ const ChatScreen = ({ navigation, route }) => {
               _id: data[i].receiver_id
             }
           };
+
+          if(data[i].type === 'image') {
+            message.image = {
+              uri: data[i].content
+            };
+          }
           setMessages((previousMessages) => GiftedChat.append(previousMessages, [message]));
         }
 
@@ -142,14 +159,124 @@ const ChatScreen = ({ navigation, route }) => {
 
   const pickImage = async () => {
     setIsImageLoading(true);
-    const result = await launchImageLibrary({ mediaType: 'photo' });
-    if (!result.didCancel && result.assets?.[0]) {
-      const image = result.assets[0];
-      setSelectedImage(image.uri);
+    const result = await ImagePicker.openPicker({
+        width: 200,
+        height: 200,
+        cropping: true,
+        compressImageQuality: 0.8,
+        includeBase64: true,
+        multiple: false,
+    });
+
+    if (result) {
+      const imageData = {
+        uri: result.path,
+        type: result.mime,
+        name: result.path.split('/').pop(),
+        base64: `data:${result.mime};base64,${result.data}`
+      }
+
+      setSelectedImage(imageData);
     }
+    // const result = await launchImageLibrary({
+    //   mediaType: 'photo',
+    //   includeBase64: true,
+    //   quality: 0.8,
+    // });
+    // if (!result.didCancel && result.assets?.[0]) {
+    //   const image = result.assets[0];
+    //   const base64 = `data:${image.type};base64,${image.base64}`;
+    //   const imageName = image.fileName;
+    //   const imageType = image.type.split('/')[0];
+    //
+    //   const imageData = {
+    //     uri: image.uri,
+    //     type: imageType,
+    //     name: imageName,
+    //     base64: base64
+    //   }
+    //
+    //   setSelectedImage(imageData);
+    // }
     setIsImageLoading(false);
   };
 
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android' && parseInt(Platform.Version, 10) >= 29) {
+      try {
+        const permissionGranted = await PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+        );
+
+        console.log('Permission granted:', permissionGranted);
+
+        if (!permissionGranted) {
+          const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+              {
+                title: 'Storage Permission',
+                message: 'This app needs access to your storage to download images.',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
+              }
+          );
+
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            ToastAndroid.show('Storage permission denied.', ToastAndroid.LONG);
+            await Linking.openSettings();
+            return false;
+          }
+        }
+        return true;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+
+  const downloadImage = async (imageUri) => {
+    try {
+      const permissionGranted = await requestStoragePermission();
+      if (!permissionGranted) {
+        return;
+      }
+
+      const fileName = imageUri.split('/').pop();
+      const downloadDest = `${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera/${fileName}`;
+      await RNFS.mkdir(`${RNFS.ExternalStorageDirectoryPath}/DCIM/Camera`).catch(err => {
+        console.log('Thư mục đã tồn tại hoặc không thể tạo:', err);
+      });
+      const options = {
+        fromUrl: imageUri,
+        toFile: downloadDest,
+      };
+      const result = await RNFS.downloadFile(options).promise;
+
+      if (Platform.OS === 'android') {
+        await RNFS.scanFile(downloadDest);
+      }
+
+      if (result.statusCode === 200) {
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Image downloaded successfully'
+        });
+      } else {
+        throw new Error('Failed to download image');
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.message
+      });
+    }
+  };
 
   const renderMessage = (props) => {
     const { currentMessage } = props;
@@ -163,17 +290,22 @@ const ChatScreen = ({ navigation, route }) => {
       >
 
         {currentMessage.image ? (
-          <Image
-            source={{ uri: currentMessage.image }}
-            style={{
-              width: 200,
-              height: 200,
-              borderRadius: 10,
-              marginBottom: 5,
-              marginRight: isCurrentUser ? 0 : 10,
-              marginLeft: isCurrentUser ? 10 : 0
-            }}
-          />
+            <View>
+              <Image
+                  source={{ uri: currentMessage.image.uri }}
+                  style={{
+                    width: 200,
+                    height: 200,
+                    borderRadius: 10,
+                    marginBottom: 5,
+                    marginRight: isCurrentUser ? 0 : 10,
+                    marginLeft: isCurrentUser ? 10 : 0
+                  }}
+              />
+              <TouchableOpacity onPress={() => downloadImage(currentMessage.image.uri)}>
+                <Text style={{ color: 'white', textAlign: 'center' }}>Download</Text>
+              </TouchableOpacity>
+            </View>
         ) : (
           <Bubble
             {...props}
@@ -225,26 +357,6 @@ const ChatScreen = ({ navigation, route }) => {
     return isoString.replace('T', ' ').substring(0, 19);
   };
 
-  const uriToBase64 = (uri) => {
-    return new Promise((resolve, reject) => {
-      const fetchImage = async () => {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const reader = new FileReader();
-
-        reader.onloadend = () => {
-          const base64data = reader.result;
-          resolve(base64data);
-        };
-
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      };
-
-      fetchImage();
-    });
-  };
-
   const submitMessage = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -265,7 +377,6 @@ const ChatScreen = ({ navigation, route }) => {
           _id: Math.random().toString(36).substring(7),
           type: 'image',
           image: selectedImage ? selectedImage : null,
-          content: await uriToBase64(selectedImage),
           createdAt: formatDate(new Date()),
           user: {
             _id: userId
@@ -355,7 +466,7 @@ const ChatScreen = ({ navigation, route }) => {
           <View className="w-full relative bg-gray-300 p-2 rounded-xl mb-2"
                 style={{ backgroundColor: 'rgba(128, 128, 128, 0.5)' }}>
             <Image
-              source={{ uri: selectedImage }}
+              source={{ uri: selectedImage.uri }}
               style={{ width: 50, height: 50, borderRadius: 10 }}
             />
             <TouchableOpacity

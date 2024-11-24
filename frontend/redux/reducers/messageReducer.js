@@ -28,7 +28,11 @@ export const messageReducer = createReducer(initialState, (builder) => {
       const message = action.payload;
       const index = state.users.findIndex((u) => u.id === message.id);
       if (index !== -1) {
-        state.users[index].lastMessage = message.lastMessage;
+        if(message.type === 'image') {
+          state.users[index].lastMessage = 'Received an image';
+        } else {
+          state.users[index].lastMessage = message.lastMessage;
+        }
         state.users[index].lastMessageTime = message.lastMessageTime;
         state.users[index].status = message.status;
         state.users[index].isMe = false;
@@ -54,7 +58,11 @@ export const messageReducer = createReducer(initialState, (builder) => {
       const message = action.payload;
       const index = state.users.findIndex((u) => u.id === message.user._id);
       if (index !== -1) {
-        state.users[index].lastMessage = message.text;
+        if(message.type === 'image') {
+          state.users[index].lastMessage = 'Sent an image';
+        } else {
+          state.users[index].lastMessage = message.text;
+        }
         state.users[index].lastMessageTime = message.createdAt.toString();
         state.users[index].isMe = true;
       }

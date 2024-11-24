@@ -4,6 +4,7 @@ const redisClient = require('./configs/redis');
 const User = require('./models/user.model');
 const Message = require('./models/message.model');
 const { formatDate } = require('./utils/validators');
+const { uploadMedia } = require('./configs/cloudinary');
 
 
 let socketServer = (app, notification) => {
@@ -145,16 +146,30 @@ let socketServer = (app, notification) => {
       socket.on('sendMessage', async (data) => {
         try {
           console.log('[Server] Send message');
-          const { text, createdAt, user, accessToken } = data;
+          const { text, createdAt, user, accessToken, image, type } = data;
           const sender = await redisClient.get(`accessToken:${accessToken}`);
-          const message = new Message({
-            type: 'text',
-            content: text,
-            status: 'sent',
-            sender_id: JSON.parse(sender),
-            receiver_id: user._id,
-            created_at: createdAt
-          });
+          let message;
+          if(type === 'image') {
+            const uploadImage = await uploadMedia(image.base64);
+
+            message = new Message({
+              type: 'image',
+              content: uploadImage.url,
+              status: 'sent',
+              sender_id: JSON.parse(sender),
+              receiver_id: user._id,
+              created_at: createdAt
+            });
+          } else {
+            message = new Message({
+              type: 'text',
+              content: text,
+              status: 'sent',
+              sender_id: JSON.parse(sender),
+              receiver_id: user._id,
+              created_at: createdAt
+            });
+          }
           await message.save();
 
           if (userSocketMap.has(user._id.toString())) {
@@ -166,7 +181,7 @@ let socketServer = (app, notification) => {
             const messagePayload = {
                 notification: {
                     title: 'New message',
-                    body: text
+                    body: type === 'image' ? 'Received an image' : text
                 },
                 token: receiverFcmToken.fcmToken
             }
@@ -182,6 +197,8 @@ let socketServer = (app, notification) => {
             // send to ChatScreen
             io.to(userSocketMap.get(user._id.toString())).emit('receiveMessage', {
               _id: message._id,
+              type: message?.type || '',
+              image: message?.content || '',
               text: message.content,
               status: message?.status || '',
               createdAt: message.created_at,
@@ -194,6 +211,7 @@ let socketServer = (app, notification) => {
             io.to(userSocketMap.get(user._id.toString())).emit('newLastMessage', {
               id: message.sender_id,
               status: message?.status || '',
+              type: message?.type || '',
               isMe: false,
               lastSeen: message?.seenAt || '',
               lastMessage: message?.content || '',
