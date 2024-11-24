@@ -14,7 +14,8 @@ import {
 import FontAwesome5Brands from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -81,10 +82,13 @@ const HomeScreen = props => {
     }
   };
 
-  useEffect(() => {
-    fetchPosts();
-    fetchFollowing();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+      fetchFollowing();
+    }, [])
+  )
+
 
   const onScroll = event => {
     const {nativeEvent} = event;
@@ -276,7 +280,7 @@ const HomeScreen = props => {
                       post_id: item._id,
                     })
                   }>
-                  {Array.isArray(item?.media) && item.media.length > 0 ? (
+                  {Array.isArray(item?.media) && item.media.length > 0 && (
                     <ScrollView
                       horizontal
                       className="ml-[50px] my-3 flex flex-row">
@@ -295,10 +299,6 @@ const HomeScreen = props => {
                         />
                       ))}
                     </ScrollView>
-                  ) : (
-                    <Text className="text-gray-500 text-center mt-2">
-                      No Image Available
-                    </Text>
                   )}
 
                   <View className="pl-[50px] pt-4 flex-row">
@@ -366,13 +366,6 @@ const HomeScreen = props => {
               progressViewOffset={refreshingHeight}
             />
           }
-          // ListHeaderComponent={
-          //   <Animated.View
-          //     style={{
-          //       paddingTop: extraPaddingTop,
-          //     }}
-          //   />
-          // }
         />
       </SafeAreaView>
       <Popup
@@ -386,6 +379,7 @@ const HomeScreen = props => {
         onClose={() => setDeletePopupVisible(false)}
         post_id={selectedPostId}
         func='deletePost'
+        onUpdated={fetchPosts}
       />
     </>
   );

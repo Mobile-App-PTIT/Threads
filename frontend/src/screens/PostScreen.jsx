@@ -69,6 +69,7 @@ const PostScreen = ({navigation}) => {
         type: 'image/jpeg',
         name: `image_${index}.jpg`,
       });
+      
     });
 
     try {
@@ -79,9 +80,11 @@ const PostScreen = ({navigation}) => {
         },
       });
 
-      if (response.data.success) {
+     
         console.log('Post uploaded successfully:', response.data);
-      }
+        clearContent()
+        navigation.navigate('Home2');
+      
     } catch (error) {
       console.error('Error uploading post:', error);
     }
@@ -124,7 +127,7 @@ const PostScreen = ({navigation}) => {
                       name="close"
                       size={20}
                       color={'gray'}
-                      style={{paddingStart: 200}}
+                      style={{paddingStart: 250}}
                     />
                   </TouchableOpacity>
                 )}
@@ -158,7 +161,7 @@ const PostScreen = ({navigation}) => {
                 <TouchableOpacity onPress={uploadPostImage}>
                   <Ionicons
                     name="images-outline"
-                    size={24}
+                    size={20}
                     color={'gray'}
                     className="pl-3 pr-1"
                   />
@@ -179,7 +182,7 @@ const PostScreen = ({navigation}) => {
                     {status === 'private' && (
                       <Ionicons
                         name="lock-closed-outline"
-                        size={21}
+                        size={20}
                         color="gray"
                         style={{marginRight: 3}}
                       />
@@ -187,7 +190,7 @@ const PostScreen = ({navigation}) => {
                     {status === 'public' && (
                       <Ionicons
                         name="lock-open-outline"
-                        size={21}
+                        size={20}
                         color="gray"
                         style={{marginRight: 3}}
                       />

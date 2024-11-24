@@ -12,7 +12,7 @@ import axios from 'axios';
 import uri from '../../redux/uri';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SharePopup = ({isVisible, onClose, post_id, func}) => {
+const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
   const slideAnim = useRef(new Animated.Value(300)).current;
 
   useEffect(() => {
@@ -63,6 +63,9 @@ const SharePopup = ({isVisible, onClose, post_id, func}) => {
         },
       );
       onClose();
+      if (typeof onUpdated === 'function') {
+        onUpdated();
+      }
     } catch (err) {
       console.error(err);
     }
@@ -78,6 +81,7 @@ const SharePopup = ({isVisible, onClose, post_id, func}) => {
         },
       })
       onClose();
+      
     } catch (err) {
       console.error(err);
     }
