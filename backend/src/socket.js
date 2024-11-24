@@ -198,7 +198,9 @@ let socketServer = (app, notification) => {
             io.to(userSocketMap.get(user._id.toString())).emit('receiveMessage', {
               _id: message._id,
               type: message?.type || '',
-              image: message?.content || '',
+              image: {
+                uri: message.content
+              },
               text: message.content,
               status: message?.status || '',
               createdAt: message.created_at,
