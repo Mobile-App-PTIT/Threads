@@ -46,6 +46,7 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
         },
       );
       onClose();
+      
     } catch (err) {
       console.error(err);
     }
@@ -71,7 +72,7 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
     }
   };
 
-  const handleDeleteComment = async () => {
+  const handleDeleteReply = async () => {
     try {
       const token = await AsyncStorage.getItem('token');  
       const reply_id = post_id;
@@ -81,10 +82,17 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
         },
       })
       onClose();
+      if (typeof onUpdated === 'function') {
+        onUpdated();
+      }
       
     } catch (err) {
       console.error(err);
     }
+  }
+
+  const handleDeleteComment = async () => {
+  
   }
 
   return (
