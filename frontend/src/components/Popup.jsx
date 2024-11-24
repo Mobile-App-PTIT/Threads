@@ -93,7 +93,23 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
   }
 
   const handleDeleteComment = async () => {
-  
+    try {
+      const token = await AsyncStorage.getItem('token');  
+      const reply_id = post_id;
+      await axios.delete(`${uri}/reply/${reply_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      onClose();
+      // cho nay la reload goi ham tu component cha
+      if (typeof onUpdated === 'function') {
+        onUpdated();
+      }
+      
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (

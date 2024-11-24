@@ -58,7 +58,8 @@ const getPost = async (req, res, next) => {
             .populate({
                 path: 'user_id',
                 select: '-password -email',
-            });
+            })
+            .sort({ createdAt: -1 }).lean();
         
         if (!post) {
             return res.status(404).json({

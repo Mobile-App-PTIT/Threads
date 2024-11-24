@@ -67,8 +67,7 @@ const getRepliesOfReply = async (req, res, next) => {
         }).populate({
             'path': 'user_id',
             'select': '-password -gmail',
-        }).lean();
-        console.log(replies.replies);
+        }).sort({ createdAt: -1 }).lean();
 
         res.status(200).json({
             message: "Replies fetched successfully",
