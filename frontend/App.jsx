@@ -59,6 +59,7 @@ const AppStack = () => {
           //   soundName: 'default', // Tên âm thanh mặc định
           //   priority: 'high' // Độ ưu tiên thông báo
           // })
+          
           if (isAuthenticated) {
             // Lấy token FCM từ server
             const token = await AsyncStorage.getItem('token');
@@ -74,6 +75,24 @@ const AppStack = () => {
               const token = await messaging().getToken();
               console.log('Token:', token);
               const response = await axios.post(`${uri}/auth/fcm-token`, { fcmToken: token }, config);
+            }
+
+            const unsubscribeOnTokenRefresh = messaging().onTokenRefresh(async token => {
+              console.log('Token refreshed:', token);
+              if (isAuthenticated) {
+                const token = await AsyncStorage.getItem('token');
+                const config = {
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                  }
+                }
+                await axios.post(`${uri}/auth/fcm-token`, { fcmToken: token }, config);
+              }
+            });
+
+            return () => {
+                unsubscribeOnTokenRefresh();
             }
           }
         }
@@ -104,21 +123,6 @@ const AppStack = () => {
       });
     });
 
-    const unsubscribeOnTokenRefresh = messaging().onTokenRefresh(async token => {
-      console.log('Token refreshed:', token);
-      if (isAuthenticated) {
-        const token = await AsyncStorage.getItem('token');
-          const config = {
-              headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`
-              }
-          }
-        await axios.post(`${uri}/auth/fcm-token`, { fcmToken: token }, config);
-      }
-    });
-
-    // Nhận thông báo khi app bị tắt
     messaging().setBackgroundMessageHandler(async remoteMessage => {
       console.log('Notification in background:', remoteMessage);
 
@@ -136,7 +140,6 @@ const AppStack = () => {
 
     return () => {
       unsubscribeOnMessage();
-      unsubscribeOnTokenRefresh();
     };
   }, [isAuthenticated]);
 
