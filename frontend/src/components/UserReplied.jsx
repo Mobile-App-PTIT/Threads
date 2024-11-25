@@ -73,7 +73,7 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
       <View className="mt-5">
         {item.replies?.length > 0 ? (
           item.replies.map((reply) => (
-            <View key={reply._id} className="flex-row mb-5">
+            <View key={reply._id} className="flex-row mb-4">
               <Image
                 source={{ uri: reply.user_id.avatar }}
                 className="w-9 h-9 rounded-full mr-2 top-6"
@@ -99,11 +99,15 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
                         <Video
                           key={index}
                           source={{ uri: mediaUrl }}
-                          className="w-40 h-40 rounded-lg mr-3"
+                          
                           controls
                           resizeMode="cover"
-                          width={150}
-                          height={150}
+                          style={{
+                            width: 150,
+                            height: 150,
+                            borderRadius: 10,
+                            marginRight: 20,
+                          }}
                         />
                       )
                     )}

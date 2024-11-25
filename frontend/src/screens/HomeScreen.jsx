@@ -283,6 +283,7 @@ const HomeScreen = props => {
                   {Array.isArray(item?.media) && item.media.length > 0 && (
                     <ScrollView
                       horizontal
+                      onStartShouldSetResponder={() => true}
                       className="ml-[50px] my-3 flex flex-row">
                       {item.media.map((img, idx) => (
                         <Image

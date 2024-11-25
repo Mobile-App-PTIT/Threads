@@ -267,7 +267,7 @@ const PostDetailsScreen = ({navigation, route}) => {
                 />
               </TouchableOpacity>
               <Text className="ml-2 text-gray-400">
-                {postData?.likes?.length > 1 ? `${postData.likes.length} Likes` : `${postData.likes.length} Like`}
+                {postData?.likes?.length > 1 ? `${postData?.likes?.length} Likes` : `${postData?.likes?.length} Like`}
               </Text>
             </View>
           </View>
