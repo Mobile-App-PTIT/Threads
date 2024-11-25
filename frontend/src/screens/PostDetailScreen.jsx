@@ -319,17 +319,17 @@ const PostDetailsScreen = ({navigation, route}) => {
                   {comment?.media && comment.media.length > 0 && (
                     <ScrollView horizontal className="my-3 flex flex-row">
                       {comment.media.map((mediaItem, idx) => {
-                        const isImage = mediaItem.match(
+                        const isImage = mediaItem?.url.match(
                           /\.(jpeg|jpg|gif|png)$/i,
                         );
                         const isVideo =
-                          mediaItem.match(/\.(mp4|mov|avi|mkv)$/i);
+                          mediaItem?.url.match(/\.(mp4|mov|avi|mkv)$/i);
 
                         if (isImage) {
                           return (
                             <Image
                               key={idx}
-                              source={{uri: mediaItem}}
+                              source={{uri: mediaItem?.url}}
                               style={{
                                 width: 260,
                                 height: 260,
@@ -343,7 +343,7 @@ const PostDetailsScreen = ({navigation, route}) => {
                           return (
                             <Video
                               key={idx}
-                              source={{uri: mediaItem}}
+                              source={{uri: mediaItem?.url}}
                               style={{
                                 width: 260,
                                 height: 260,

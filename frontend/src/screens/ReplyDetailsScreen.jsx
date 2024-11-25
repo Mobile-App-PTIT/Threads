@@ -194,7 +194,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
               <ScrollView horizontal className="my-3 flex flex-row">
                 {comment.media.map((mediaItem, idx) => {
                   // Since mediaItem is a string (URL), we need to determine the media type
-                  const mediaUrl = mediaItem;
+                  const mediaUrl = mediaItem?.url;
                   let mediaType = '';
 
                   if (mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i)) {
