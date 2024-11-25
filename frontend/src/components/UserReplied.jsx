@@ -29,6 +29,8 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
             uri: item.post.user_id?.avatar || 'https://example.com/default-avatar.jpg',
           }}
           className="w-10 h-10 rounded-full"
+          width={40}
+          height={40}
         />
         <View className="ml-3">
           <Text className="text-white font-bold">{item.post.user_id.name}</Text>
@@ -51,7 +53,8 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
                 source={{ uri: mediaUrl }}
                 className="w-60 h-60 rounded-lg mr-5"
                 resizeMode="cover"
-                controls
+                width={150}
+                height={150}
               />
             ) : (
               <Video
@@ -70,12 +73,14 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
       <View className="mt-5">
         {item.replies?.length > 0 ? (
           item.replies.map((reply) => (
-            <View key={reply._id} className="flex-row items-start mb-5">
+            <View key={reply._id} className="flex-row mb-5">
               <Image
                 source={{ uri: reply.user_id.avatar }}
-                className="w-9 h-9 rounded-full mr-3"
+                className="w-9 h-9 rounded-full mr-2 top-6"
+                width={36}
+                height={36}
               />
-              <View className="bg-gray-800 p-4 rounded-lg flex-1">
+              <View className="p-4 rounded-lg flex-1 border-b border-gray-600">
                 <Text className="text-white font-bold">{reply.user_id.name}</Text>
                 <Text className="text-gray-400 text-sm mt-1">{reply.title}</Text>
                 {reply.media?.length > 0 && (
@@ -86,6 +91,9 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
                           key={index}
                           source={{ uri: mediaUrl }}
                           className="w-40 h-40 rounded-lg mr-3"
+                          resizeMode="cover"
+                          width={150}
+                          height={150}
                         />
                       ) : (
                         <Video
@@ -94,6 +102,8 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
                           className="w-40 h-40 rounded-lg mr-3"
                           controls
                           resizeMode="cover"
+                          width={150}
+                          height={150}
                         />
                       )
                     )}
