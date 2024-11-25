@@ -69,7 +69,6 @@ const PostScreen = ({navigation}) => {
         type: 'image/jpeg',
         name: `image_${index}.jpg`,
       });
-      
     });
 
     try {
@@ -80,11 +79,9 @@ const PostScreen = ({navigation}) => {
         },
       });
 
-     
-        console.log('Post uploaded successfully:', response.data);
-        clearContent()
-        navigation.navigate('Home2');
-      
+      console.log('Post uploaded successfully:', response.data);
+      clearContent();
+      navigation.navigate('Home2');
     } catch (error) {
       console.error('Error uploading post:', error);
     }
@@ -172,7 +169,6 @@ const PostScreen = ({navigation}) => {
                 <TouchableOpacity>
                   <Feather name="mic" color={'gray'} size={18} />
                 </TouchableOpacity>
-                
 
                 {/* Privacy option dropdown */}
                 <View className="flex-row items-center relative">

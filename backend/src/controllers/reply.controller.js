@@ -1,4 +1,5 @@
 const Reply = require('../models/reply.model');
+const Post = require('../models/post.model');
 const { uploadMedia, deleteMedia } = require('../configs/cloudinary');
 // const redisClient = require('../configs/redis');
 
@@ -66,8 +67,7 @@ const getRepliesOfReply = async (req, res, next) => {
         }).populate({
             'path': 'user_id',
             'select': '-password -gmail',
-        }).lean();
-        console.log(replies.replies);
+        }).sort({ createdAt: -1 }).lean();
 
         res.status(200).json({
             message: "Replies fetched successfully",
@@ -119,6 +119,22 @@ const deleteReply = async (req, res, next) => {
 
         // Delete reply and nested replies
         await deleteReplyAndNested(reply_id);
+
+        await Post.updateOne({
+            replies: reply_id,
+        }, {
+            $pull: {
+                replies: reply_id,
+            }
+        })
+
+        await Reply.updateMany({
+            replies: reply_id,
+        }, {
+            $pull: {
+                replies: reply_id,
+            }
+        })
 
         res.status(200).json({
             message: "Reply deleted successfully",

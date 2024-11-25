@@ -31,8 +31,12 @@ const SearchScreen = ( {navigation}) => {
         },
       });
 
-      // Check if each user is in the current user's following list
-      const usersWithFollowStatus = response.data.metadata.map(item => ({
+      const filteredUsers = response.data.metadata.filter(
+        item => item._id !== user._id
+      );
+  
+      // Gắn trạng thái "following" cho từng user
+      const usersWithFollowStatus = filteredUsers.map(item => ({
         ...item,
         following: user.following.includes(item._id),
       }));

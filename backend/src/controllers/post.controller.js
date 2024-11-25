@@ -58,7 +58,8 @@ const getPost = async (req, res, next) => {
             .populate({
                 path: 'user_id',
                 select: '-password -email',
-            });
+            })
+            .sort({ createdAt: -1 }).lean();
         
         if (!post) {
             return res.status(404).json({
@@ -173,6 +174,8 @@ const likeOrUnlikePost = async (req, res, next) => {
         const { post_id } = req.params;
         const user_id = req.userId;
 
+        const whoLiked = await User.findById(user_id).select('_id name avatar');
+
         const post = await Post.findById({ _id: post_id });
         if(!post) {
             return res.status(404).json({
@@ -188,7 +191,7 @@ const likeOrUnlikePost = async (req, res, next) => {
         }
 
         // Notify the post owner about the like/unlike
-        await notifyPostOwner({ post_id, type: hasLiked ? "unlike" : "like" });
+        await notifyPostOwner({ post_id, whoLiked, type: hasLiked ? "unlike" : "like" });
 
         res.status(200).json({
             message: "Post liked/unliked successfully",
@@ -362,7 +365,7 @@ const updateReply = async (req, res, next) => {
 }
 
 // Notification
-const notifyPostOwner = async ({ post_id, type }) => {
+const notifyPostOwner = async ({ post_id, whoLiked, type }) => {
     try {
         const post = await Post.findById(post_id);
         if (!post) throw new Error("Post not found");
@@ -378,6 +381,8 @@ const notifyPostOwner = async ({ post_id, type }) => {
 
         // Save notification to database
         await Notification.create(notificationData);
+
+        notificationData.whoLiked = whoLiked;
 
         // Save notification to redis
         await redisClient.publish(`notifications:${ownerId}`, JSON.stringify(notificationData));

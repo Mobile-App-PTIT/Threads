@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import uri from '../../redux/uri';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import getTimeDuration from '../common/TimeGenerator';
 import {useSelector} from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -31,24 +32,28 @@ const PostDetailsScreen = ({navigation, route}) => {
   const [isDeletePopupVisible, setIsDeletePopupVisible] = useState(false);
   const [mediaFiles, setMediaFiles] = useState([]);
 
-  useEffect(() => {
-    const fetchPostAndComments = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const postResponse = await axios.get(`${uri}/post/${post_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        setPostData(postResponse.data.metadata);
-        setComments(postResponse.data.metadata.replies);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    fetchPostAndComments();
-  }, [post_id]);
+
+  const fetchPostAndComments = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const postResponse = await axios.get(`${uri}/post/${post_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      setPostData(postResponse.data.metadata);
+      setComments(postResponse.data.metadata.replies);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPostAndComments();
+    }, [post_id]),
+  )
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -82,6 +87,7 @@ const PostDetailsScreen = ({navigation, route}) => {
       setComments([response.data.metadata, ...comments]);
       setNewComment('');
       setMediaFiles([]);
+      fetchPostAndComments()
     } catch (error) {
       console.error('Error adding comment:', error);
     }
@@ -471,7 +477,8 @@ const PostDetailsScreen = ({navigation, route}) => {
         isVisible={isDeletePopupVisible} 
         onClose={() => setIsDeletePopupVisible(false)}
         post_id={selectedComment}
-        func="deleteComment"/>
+        func="deleteComment"
+        onUpdated={fetchPostAndComments}/>
     </>
   );
 };

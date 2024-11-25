@@ -33,22 +33,23 @@ const ReplyDetailsScreen = ({navigation, route}) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [newReply, setNewReply] = useState('');
 
+  const fetchCommentAndReplies = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const commentResponse = await axios.get(`${uri}/reply/${reply_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      setComment(commentResponse.data.metadata);
+      setReplies(commentResponse.data.metadata.replies);
+    } catch (error) {
+      console.error('Error fetching comment and replies:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchCommentAndReplies = async () => {
-      try {
-        const token = await AsyncStorage.getItem('token');
-        const commentResponse = await axios.get(`${uri}/reply/${reply_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        setComment(commentResponse.data.metadata);
-        setReplies(commentResponse.data.metadata.replies);
-      } catch (error) {
-        console.error('Error fetching comment and replies:', error);
-      }
-    };
     fetchCommentAndReplies();
   }, [reply_id]);
 
@@ -146,7 +147,7 @@ const ReplyDetailsScreen = ({navigation, route}) => {
     setMediaFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
-  const onPressDelete = (comment_id) => {
+  const onPressDelete = comment_id => {
     setSelectedComment(comment_id);
     setIsDeletePopupVisible(true);
   };
@@ -524,11 +525,13 @@ const ReplyDetailsScreen = ({navigation, route}) => {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
-      <Popup 
-        isVisible={isDeletePopupVisible} 
-        onClose={() => setIsDeletePopupVisible(false)} 
+      <Popup
+        isVisible={isDeletePopupVisible}
+        onClose={() => setIsDeletePopupVisible(false)}
         post_id={selectedComment}
-        func="deleteReply"/>
+        func="deleteReply"
+        onUpdated={fetchCommentAndReplies}
+      />
     </>
   );
 };

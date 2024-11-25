@@ -1,4 +1,5 @@
 const Reply = require('../models/reply.model');
+const redisClient = require('../configs/redis');
 
 const getUserRepliedNotification = async (req, res, next) => {
     try {
@@ -24,6 +25,28 @@ const getUserRepliedNotification = async (req, res, next) => {
     }
 };
 
+const getAllNotifications = async (req, res, next) => {
+    try {
+        const user_id = req.userId;
+
+        const cachedNotifications = await redisClient.get(`notification:${user_id}`);
+        if (cachedNotifications) {
+            return res.status(200).json({
+                message: 'Notifications fetched successfully (from cache)',
+                metadata: JSON.parse(cachedNotifications),
+            });
+        }
+
+        res.status(200).json({
+            message: 'Notifications fetched successfully',
+            metadata: [],
+        });
+    } catch(err) {
+        next(err);
+    }
+}
+
 module.exports = {
-    getUserRepliedNotification
+    getUserRepliedNotification,
+    getAllNotifications,
 }

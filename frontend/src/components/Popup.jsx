@@ -46,6 +46,7 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
         },
       );
       onClose();
+      
     } catch (err) {
       console.error(err);
     }
@@ -71,6 +72,26 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
     }
   };
 
+  const handleDeleteReply = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');  
+      const reply_id = post_id;
+      await axios.delete(`${uri}/reply/${reply_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      onClose();
+      // cho nay la reload goi ham tu component cha
+      if (typeof onUpdated === 'function') {
+        onUpdated();
+      }
+      
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   const handleDeleteComment = async () => {
     try {
       const token = await AsyncStorage.getItem('token');  
@@ -81,13 +102,15 @@ const SharePopup = ({isVisible, onClose, post_id, func, onUpdated}) => {
         },
       })
       onClose();
+      // cho nay la reload goi ham tu component cha
+      if (typeof onUpdated === 'function') {
+        onUpdated();
+      }
       
     } catch (err) {
       console.error(err);
     }
   }
-
-  const handleDeleteReply = async () => {}
 
   return (
     <Modal transparent visible={isVisible} animationType="none">
