@@ -37,11 +37,7 @@ async function uploadMedia(fileData, resourceType = 'image', retries = 3, delay 
       resource_type: resourceType,
     });
     console.log("Uploaded Media URL:", result.secure_url);
-    return {
-      url: result.secure_url,
-      public_id: result.public_id,
-      resource_type: resourceType,
-    };
+    return result.secure_url;
   } catch (error) {
     if (retries > 0) {
       console.log(`Retrying upload... (${retries} retries left)`);
