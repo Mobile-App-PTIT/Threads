@@ -51,6 +51,7 @@ const UserReplied = ({ replies, ListHeaderComponent }) => {
                 source={{ uri: mediaUrl }}
                 className="w-60 h-60 rounded-lg mr-5"
                 resizeMode="cover"
+                controls
               />
             ) : (
               <Video

@@ -37,11 +37,14 @@ const NotificationScreen = ({navigation}) => {
     if (index === 1) {
       // Fetch replies when "Replies" tab is clicked
       try {
-        const response = await axios.get(`${uri}/notification/user/${user._id}/replied`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const response = await axios.get(
+          `${uri}/notification/user/${user._id}/replied`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        });
+        );
 
         const replies = response.data.metadata.map(reply => {
           return {
@@ -92,20 +95,6 @@ const NotificationScreen = ({navigation}) => {
     },
   ];
 
-  // const repliesData = [
-  //   {
-  //     _id: 1,
-  //     content: 'Tks bác nhé',
-  //     postId: '1',
-  //     creator: {
-  //       _id: 3,
-  //       name: 'joybutalwaysadaf',
-  //       title: 'K co gi e',
-  //     },
-  //     time: '9 tuần',
-  //   },
-  // ];
-
   return (
     <SafeAreaView className="bg-zinc-900 flex-1">
       <View className="p-5">
@@ -143,8 +132,8 @@ const NotificationScreen = ({navigation}) => {
             ) : (
               <FlatList
                 data={repliesData}
-                contentContainerStyle = {{paddingBottom: 100}}
-                className='h-full'
+                contentContainerStyle={{paddingBottom: 100}}
+                className="h-full"
                 keyExtractor={item => item._id.toString()}
                 showsVerticalScrollIndicator={false}
                 renderItem={({item}) => (
@@ -152,11 +141,13 @@ const NotificationScreen = ({navigation}) => {
                     {/* Kiểm tra creator và map */}
                     {item.creator && item.creator.length > 0 ? (
                       item.creator.map(i => (
-                        <TouchableOpacity onPress={() =>
-                          navigation.navigate('PostDetailScreen', {
-                            post_id: item.postId,
-                          })
-                        } key={i.reply_id}>
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate('PostDetailScreen', {
+                              post_id: item.postId,
+                            })
+                          }
+                          key={i.reply_id}>
                           <View className="flex-row gap-2 mt-3">
                             <View className="relative">
                               <Image
@@ -227,9 +218,11 @@ const NotificationScreen = ({navigation}) => {
                         </TouchableOpacity>
                       ))
                     ) : (
-                      <Text className="text-gray-500 text-center">
-                        No replies
-                      </Text>
+                      <View className="w-full h-[80px] flex items-center justify-center">
+                        <Text className="text-[16px] text-white mt-5">
+                          You have no replies yet!
+                        </Text>
+                      </View>
                     )}
                   </View>
                 )}
