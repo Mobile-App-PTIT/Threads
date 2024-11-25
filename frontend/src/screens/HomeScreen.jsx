@@ -339,9 +339,7 @@ const HomeScreen = props => {
                         color="white"
                       />
                       <Text className="text-[16px] text-white ml-2">
-                        {item?.replies?.length
-                          ? `${item?.replies?.length} Comments`
-                          : '0 Comment'}
+                        {item?.replies?.length > 1 ? `${item?.replies?.length} Comments` : `${item?.replies?.length} Comment`}
                       </Text>
                     </TouchableOpacity>
 

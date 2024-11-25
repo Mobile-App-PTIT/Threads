@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import uri from '../../redux/uri';
 import {useSelector} from 'react-redux';
 
-const SearchScreen = ( {navigation}) => {
+const SearchScreen = ({navigation}) => {
   const {user} = useSelector(state => state.user);
   const [data, setData] = useState([]);
   const [search, setSearch] = useState('');
@@ -32,9 +32,9 @@ const SearchScreen = ( {navigation}) => {
       });
 
       const filteredUsers = response.data.metadata.filter(
-        item => item._id !== user._id
+        item => item._id !== user._id,
       );
-  
+
       // Gắn trạng thái "following" cho từng user
       const usersWithFollowStatus = filteredUsers.map(item => ({
         ...item,
@@ -161,11 +161,17 @@ const SearchScreen = ( {navigation}) => {
                       {item?.subname || 'No subname'}
                     </Text>
                     <Text className="pl-3 mt-3 text-[14px] text-white">
-                      {item.followers.length} followers
+                      {item.followers.length > 1 ? `${item.followers.length} followers` : `${item.followers.length} follower`}
                     </Text>
                   </View>
                   <View>
-                    {item.following ? null : (
+                    {item.following ? (
+                      <TouchableOpacity
+                        onPress={() => handleFollow(item._id, index)}
+                        className="rounded-[8px] w-[100px] flex-row justify-center items-center h-[35px] border border-slate-700">
+                        <Text className="text-white">Unfollow</Text>
+                      </TouchableOpacity>
+                    ) : (
                       <TouchableOpacity
                         onPress={() => handleFollow(item._id, index)}
                         className="rounded-[8px] w-[100px] flex-row justify-center items-center h-[35px] border border-slate-700">

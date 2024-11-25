@@ -267,7 +267,7 @@ const PostDetailsScreen = ({navigation, route}) => {
                 />
               </TouchableOpacity>
               <Text className="ml-2 text-gray-400">
-                {postData?.likes?.length || 0} Likes
+                {postData?.likes?.length > 1 ? `${postData.likes.length} Likes` : `${postData.likes.length} Like`}
               </Text>
             </View>
           </View>
@@ -383,7 +383,7 @@ const PostDetailsScreen = ({navigation, route}) => {
                         }
                       />
                       <Text className="ml-2 text-gray-400">
-                        {comment.likes.length || 0} Likes
+                        {comment.likes.length > 1 ? `${comment.likes.length} Likes` :  `${comment.likes.length} Like`} 
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -399,7 +399,7 @@ const PostDetailsScreen = ({navigation, route}) => {
                         color="white"
                       />
                       <Text className="ml-2 text-gray-400">
-                        {comment?.replies?.length || 0} Replies
+                        {comment?.replies?.length > 1 ? `${comment.replies.length} Replies` : `${comment.replies.length} Reply`}
                       </Text>
                     </TouchableOpacity>
                   </View>

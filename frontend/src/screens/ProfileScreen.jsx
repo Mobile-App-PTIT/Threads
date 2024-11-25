@@ -162,7 +162,7 @@ const ProfileScreen = ({ navigation, route }) => {
       </View>
 
       <View className="mx-5 mt-5">
-        <Text className="text-white">{followers} Followers</Text>
+        <Text className="text-white">{followers > 1 ? `${followers} Followers` : `${followers} Follower`}</Text>
       </View>
 
       {currentUserId === user._id ? (
