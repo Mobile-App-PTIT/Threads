@@ -154,7 +154,7 @@ let socketServer = (app, notification) => {
 
             message = new Message({
               type: 'image',
-              content: uploadImage.url,
+              content: uploadImage,
               status: 'sent',
               sender_id: JSON.parse(sender),
               receiver_id: user._id,
