@@ -18,6 +18,8 @@ const notificationSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now,
+        required: true,
+        index: { expireAfterSeconds: 7776000 } // TTL index for 90 days
     }
 })
 

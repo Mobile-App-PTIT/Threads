@@ -384,8 +384,11 @@ const notifyPostOwner = async ({ post_id, whoLiked, type }) => {
 
         notificationData.whoLiked = whoLiked;
 
-        // Save notification to redis
-        await redisClient.publish(`notifications:${ownerId}`, JSON.stringify(notificationData));
+        // Save notification to Redis cache
+        await redisClient.set(`notification:${ownerId}`, JSON.stringify(notificationData));
+
+        // Publish notification
+        // await publisher.publish(`notifications:${ownerId}`, JSON.stringify(notificationData));
     } catch(err) {
         console.error("Error in createNotification:", err);
     }

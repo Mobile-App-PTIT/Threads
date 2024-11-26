@@ -30,7 +30,8 @@ const messageSchema = new Schema({
   created_at: {
     type: Date,
     default: Date.now,
-    required: true
+    required: true,
+    index: { expireAfterSeconds: 7776000 } // TTL index for 90 days
   },
   seenAt: {
     type: Date
