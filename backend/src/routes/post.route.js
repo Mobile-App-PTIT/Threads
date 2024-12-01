@@ -13,6 +13,9 @@ router.post('/', isAuth, upload.array('mediaFiles'), postController.createPost);
 router.patch('/:post_id', isAuth, postController.updatePost);
 router.delete('/:post_id', isAuth, postController.deletePost);
 
+//Recommendation post
+router.get('/recommendation/user/:user_id', postController.getRecommendationPosts);
+
 //Like a post
 router.patch('/:post_id/like', isAuth, postController.likeOrUnlikePost);
 

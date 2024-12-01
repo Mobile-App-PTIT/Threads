@@ -1,3 +1,4 @@
+// const axios = require('axios');
 const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
@@ -166,6 +167,73 @@ const deletePost = async (req, res, next) => {
     }
 };
 
+// Recommendation post
+const getRecommendationPosts = async (req, res, next) => {
+    try {
+        const { user_id } = req.params;
+
+        const user = await User.findById(user_id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const AllPost = await Post.find({
+            status: 'public',
+        }).select('_id title likes createdAt').lean();
+
+        // Get posts liked by the current user
+        const userLikedPosts = await Post.find({
+            likes: user_id,
+        }).select('_id').lean();
+
+        // Find users who liked the same posts
+        const usersWhoLikedSamePostsSet = new Set();
+
+        for (const post of userLikedPosts) {
+        const postDetails = await Post.findById(post._id).select('likes').lean();
+        postDetails.likes.forEach(like => {
+            const likeStr = like.toString();
+            if (likeStr !== user_id) {
+            usersWhoLikedSamePostsSet.add(likeStr);
+            }
+        });
+        }
+
+        const usersWhoLikedSamePosts = Array.from(usersWhoLikedSamePostsSet);
+
+        const userDataMap = new Map();
+
+        // Get posts liked by users who liked the same posts
+        for (const user of usersWhoLikedSamePosts) {
+            AllPost.forEach(post => {
+                if (post.likes.some(like => like.toString() === user)) {
+                    if (userDataMap.has(user)) {
+                        userDataMap.get(user).push(post._id);
+                    } else {
+                        userDataMap.set(user, [post._id]);
+                    }
+                }
+            });
+        }
+
+        const CollaborativeFilteringData = Array.from(userDataMap.entries()).map(([user, posts]) => ({
+            user_id: user,
+            liked_posts: posts
+        }));
+
+        const ContentBasedFilteringData = AllPost.filter(post =>
+            post.likes.some(like => like.toString() === user_id)
+        );
+
+        res.status(200).json({
+            message: "Recommendation posts fetched successfully",
+            metadata: {
+                CollaborativeFilteringData,
+                ContentBasedFilteringData,
+            },
+        });
+    } catch (err) {
+        next(err);
+    }
+};  
 
 
 // Like a post
@@ -402,6 +470,7 @@ module.exports = {
     getUserSharePosts,
     updatePost,
     deletePost,
+    getRecommendationPosts,
     likeOrUnlikePost,
     sharePost,
     publicOrPrivateSharePost,

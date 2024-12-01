@@ -1,4 +1,8 @@
 fastapi
 uvicorn
+httpx
+pydantic
 numpy
+pandas
+nltk
 scikit-learn
