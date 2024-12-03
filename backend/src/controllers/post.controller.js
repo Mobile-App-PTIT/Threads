@@ -172,26 +172,22 @@ const getRecommendationPosts = async (req, res, next) => {
     try {
         const { user_id } = req.params;
 
-        // Kiểm tra người dùng
         const user = await User.findById(user_id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        // Lấy tất cả bài viết công khai (chỉ lấy các trường cần thiết)
         const allPosts = await Post.find({
             status: 'public',
         }).select('_id title likes').lean();
 
-        // Lấy các bài viết mà người dùng đã thích
         const userLikedPosts = await Post.find({
             likes: user_id,
         }).select('_id title').lean();
 
         const userLikedPostIds = userLikedPosts.map(post => post._id);
 
-        // Kết hợp tiêu đề của các bài viết mà người dùng đã thích
         const userLikedTitles = userLikedPosts.map(post => post.title).join(' ');
 
-        // Lấy danh sách người dùng đã thích cùng bài viết
+        // Get users who liked the same posts as the user
         const usersWhoLikedSamePosts = await Post.aggregate([
             { $match: { _id: { $in: userLikedPostIds } } },
             { $unwind: '$likes' },
@@ -202,12 +198,11 @@ const getRecommendationPosts = async (req, res, next) => {
 
         const otherUserIds = usersWhoLikedSamePosts.length > 0 ? usersWhoLikedSamePosts[0].users : [];
 
-        // Lấy các bài viết mà những người dùng khác đã thích
+        // Get posts liked by other users
         const postsLikedByOtherUsers = await Post.find({
             likes: { $in: otherUserIds }
         }).select('_id likes').lean();
 
-        // Tạo dữ liệu cho Collaborative Filtering
         const userDataMap = new Map();
 
         for (const otherUserId of otherUserIds) {
@@ -222,13 +217,11 @@ const getRecommendationPosts = async (req, res, next) => {
             liked_posts: posts.map(postId => postId.toString())
         }));        
 
-        // Chuẩn bị dữ liệu cho Content-Based Filtering
         const ContentBasedFilteringData = allPosts.map(post => ({
             post_id: post._id.toString(),
             title: post.title
         }));
 
-        // Gửi dữ liệu đến Python backend
         const recommendationPostsId = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/recommendations`, {
             user_id: user_id.toString(),
             user_query: userLikedTitles,
@@ -236,7 +229,6 @@ const getRecommendationPosts = async (req, res, next) => {
             ContentBasedFilteringData,
         });
 
-        // Lấy thông tin bài viết từ danh sách post_id nhận được
         const recommendationPosts = await Post.find({
             _id: { $in: recommendationPostsId.data.recommendationPostsId }
         }).sort({ createdAt: -1 }).lean();
