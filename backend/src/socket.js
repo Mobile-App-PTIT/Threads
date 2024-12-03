@@ -7,7 +7,7 @@ const { formatDate } = require('./utils/validators');
 const { uploadMedia } = require('./configs/cloudinary');
 
 
-let socketServer = (app, notification) => {
+let socketServer = (app, notification, chatClient) => {
   const server = http.createServer(app);
   const io = socketIo(server);
 
