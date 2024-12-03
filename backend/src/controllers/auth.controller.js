@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
 const RefreshToken = require('../models/token.model');
+const Call = require('../models/call.model');
 const redisClient = require('../configs/redis');
 
 const signup = async (req, res, next, chatClient) => {
@@ -189,6 +190,26 @@ const postFcmToken = async (req, res, next) => {
     }
 };
 
+const joinCall = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const {receiverId} = req.body;
+
+        const call = await Call.findOne({users: {$all: [userId, receiverId]}});
+        if (!call) {
+            // create new call
+            const newCall = new Call({users: [userId, receiverId]});
+            await newCall.save();
+            res.status(200).json({callId: newCall._id});
+        } else {
+            res.status(200).json({callId: call._id});
+        }
+    } catch (err) {
+        if (!err.statusCode) err.statusCode = 500;
+        next(err);
+    }
+}
+
 const refresh = async (req, res, next) => {
     try {
         const {refreshToken} = req.body;
@@ -229,4 +250,4 @@ const refresh = async (req, res, next) => {
     }
 };
 
-module.exports = {signup, login, refresh, postFcmToken, getFcmToken};
+module.exports = {signup, login, refresh, postFcmToken, getFcmToken, joinCall};

@@ -13,6 +13,7 @@ let authRoutes = (chatClient) => {
     });
     router.post('/refresh-token', authController.refresh);
     router.post('/fcm-token', isAuth, authController.postFcmToken);
+    router.post('/join-call', isAuth, authController.joinCall);
     router.get('/fcm-token', isAuth, authController.getFcmToken);
 
     return router;

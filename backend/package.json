@@ -34,7 +34,8 @@
     "passport": "^0.7.0",
     "redis": "^4.7.0",
     "socket.io": "^4.8.1",
-    "stream-chat": "^8.45.3"
+    "stream-chat": "^8.45.3",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
