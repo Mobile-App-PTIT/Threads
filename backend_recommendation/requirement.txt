@@ -1,8 +1,7 @@
 fastapi
 uvicorn
-httpx
 pydantic
 numpy
 pandas
-nltk
+python-dotenv
 scikit-learn

@@ -1,39 +1,55 @@
 from fastapi import APIRouter
 from typing import List
 import pandas as pd
-from app.schemas.post import Post
-from app.schemas.recommendation import RecommendationResponse
+from app.schemas.recommendation import RecommendationRequest
 from app.services.algorithms import CollaborativeFiltering, ContentBasedFiltering
 
 router = APIRouter()
 
-## Testing data
-posts_data = pd.DataFrame({
-    'post_id': [1, 2, 3, 4, 5],
-    'title': ["Tech trends in 2024", "Top 10 football players", "AI in healthcare", "Political changes in 2024", "Quantum computing basics"],
-})
+@router.post("/recommendations")
+def get_recommendations(request: RecommendationRequest):
+    collaborative_data = request.CollaborativeFilteringData
+    content_data = request.ContentBasedFilteringData
 
-## Note:
-## Add the liked_post_id to the user in database
-users_data = pd.DataFrame({
-    'user_id': [1, 2, 3, 4, 5],
-    'liked_post_id': [[1, 3], [2, 4], [1, 5], [2, 3], [1, 2, 4]]
-})
+    user_id = request.user_id
+    user_query = request.user_query
 
-cf_model = CollaborativeFiltering(users_data = users_data[['user_id', 'liked_post_id']], n_neighbors=5)
-cbf_model = ContentBasedFiltering(posts=posts_data)
+    users_data = pd.DataFrame([{'user_id': item.user_id, 'liked_posts': item.liked_posts} for item in collaborative_data])
+    posts_data = pd.DataFrame([{'post_id': item.post_id, 'title': item.title} for item in content_data])
 
-@router.get("/recommendations/{user_id}")
-def get_recommendations(user_id: int):
-    # Collaborative Filtering recommendations
+    cf_model = CollaborativeFiltering(users_data=users_data, posts_data=posts_data, n_neighbors=5)
+    cbf_model = ContentBasedFiltering(posts=posts_data)
+
     cf_recommendations = cf_model.recommend(user_id)
+    cbf_recommendations = cbf_model.recommend(user_query)
 
-    # Content-Based Filtering recommendations
-    user_query = "AI"
-    cbf_recommendations = cbf_model.recommend(user_query, posts_data)
+    ## Weighted Hybrid Recommendation
+    cf_weight = 0.4
+    cbf_weight = 0.6
 
-    # Combine recommendations from both models and remove duplicates
-    all_recommended_posts = cf_recommendations + cbf_recommendations
-    unique_recommended_posts = {post.post_id: post for post in all_recommended_posts}.values()
+    combined_scores = {}
 
-    return RecommendationResponse(recommended_posts=list(unique_recommended_posts))
+    # Combine scores from CF
+    for post_id, score in cf_recommendations:
+        combined_score = cf_weight * score
+        if post_id in combined_scores:
+            combined_scores[post_id] += combined_score
+        else:
+            combined_scores[post_id] = combined_score
+
+    # Combine scores from CBF
+    for post_id, score in cbf_recommendations:
+        combined_score = cbf_weight * score
+        if post_id in combined_scores:
+            combined_scores[post_id] += combined_score
+        else:
+            combined_scores[post_id] = combined_score
+
+    # Sort the combined scores
+    sorted_recommendations = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
+
+    top_recommendations = sorted_recommendations[:100]
+
+    recommended_post_ids = [post_id for post_id, _ in top_recommendations]
+
+    return {'recommendationPostsId': recommended_post_ids}
