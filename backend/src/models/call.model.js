@@ -4,6 +4,7 @@ const {Schema, model, Types} = mongoose;
 const callSchema = new Schema({
     participants: {
         type: [Types.ObjectId],
+        ref: 'User',
         required: true,
         validate: {
             validator: function (v) {
