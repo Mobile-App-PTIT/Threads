@@ -8,7 +8,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user.model');
 const RefreshToken = require('../models/token.model');
-const Call = require('../models/call.model');
 const redisClient = require('../configs/redis');
 
 const signup = async (req, res, next, chatClient) => {
@@ -230,4 +229,4 @@ const refresh = async (req, res, next) => {
     }
 };
 
-module.exports = {signup, login, refresh, postFcmToken, getFcmToken, joinCall};
+module.exports = {signup, login, refresh, postFcmToken, getFcmToken};
