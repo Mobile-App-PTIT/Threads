@@ -190,26 +190,6 @@ const postFcmToken = async (req, res, next) => {
     }
 };
 
-const joinCall = async (req, res, next) => {
-    try {
-        const userId = req.userId;
-        const {receiverId} = req.body;
-
-        const call = await Call.findOne({participants: {$all: [userId, receiverId]}});
-        if (!call) {
-            // create new call
-            const newCall = new Call({participants: [userId, receiverId]});
-            await newCall.save();
-            res.status(200).json({callId: newCall._id});
-        } else {
-            res.status(200).json({callId: call._id});
-        }
-    } catch (err) {
-        if (!err.statusCode) err.statusCode = 500;
-        next(err);
-    }
-}
-
 const refresh = async (req, res, next) => {
     try {
         const {refreshToken} = req.body;
