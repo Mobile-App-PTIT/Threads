@@ -4,6 +4,8 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const morgan = require('morgan');
 const compression = require('compression');
+const {StreamChat} = require('stream-chat');
+
 const initWebRoutes = require('./routes/init.route');
 const User = require('./models/user.model');
 const socketServer = require('./socket');
@@ -13,8 +15,9 @@ require('dotenv').config();
 const app = express();
 
 const notify = notification();
+const chatClient = StreamChat.getInstance(process.env.STREAM_API_KEY, process.env.STREAM_API_SECRET);
 
-const server = socketServer(app, notify);
+const server = socketServer(app, notify, chatClient);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -22,7 +25,7 @@ app.use(cors());
 app.use(compression());
 app.use(morgan('dev'));
 
-initWebRoutes(app);
+initWebRoutes(app, chatClient);
 
 app.use((error, req, res, next) => {
   console.error(error);

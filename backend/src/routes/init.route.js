@@ -8,9 +8,9 @@ const notificationRoutes = require('./notification.route');
 
 let router = express.Router();
 
-let initWebRoutes = (app) => {
+let initWebRoutes = (app, chatClient) => {
   router.use('/user', userRoutes);
-  router.use('/auth', authRoutes);
+  router.use('/auth', authRoutes(chatClient));
   router.use('/message', messageRoutes);
   router.use('/post', postRoutes);
   router.use('/reply', replyRoutes);

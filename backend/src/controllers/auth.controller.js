@@ -10,7 +10,7 @@ const User = require('../models/user.model');
 const RefreshToken = require('../models/token.model');
 const redisClient = require('../configs/redis');
 
-const signup = async (req, res, next) => {
+const signup = async (req, res, next, chatClient) => {
   try {
     const { email, password, name } = req.body;
 
@@ -49,6 +49,13 @@ const signup = async (req, res, next) => {
     const hashPassword = await bcrypt.hash(password, 12);
     const user = new User({ email, password: hashPassword, name });
     await user.save();
+
+    await chatClient.upsertUser({
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+    })
+
     console.log('User created.');
     res.status(201).json({ message: 'User created.' });
   } catch (err) {
@@ -57,7 +64,7 @@ const signup = async (req, res, next) => {
   }
 };
 
-const login = async (req, res, next) => {
+const login = async (req, res, next, chatClient) => {
   try {
     const { email, password } = req.body;
 
@@ -106,6 +113,8 @@ const login = async (req, res, next) => {
     });
     await newRefreshToken.save();
 
+    const chatToken = chatClient.createToken(user._id.toString());
+
     // if redis has existing access token, delete it first before saving new one
     const existingAccessToken = await redisClient.get(`accessToken:${accessToken}`);
     if (existingAccessToken) {
@@ -119,6 +128,7 @@ const login = async (req, res, next) => {
       message: 'Login successful.',
       accessToken,
       refreshToken,
+      chatToken,
       tokenType: 'Bearer',
       expiresIn: process.env.JWT_ACCESS_EXPIRATION,
       user: {
