@@ -1,4 +1,4 @@
-// const axios = require('axios');
+const axios = require('axios');
 const Post = require('../models/post.model');
 const Reply = require('../models/reply.model');
 const User = require('../models/user.model');
@@ -172,69 +172,83 @@ const getRecommendationPosts = async (req, res, next) => {
     try {
         const { user_id } = req.params;
 
+        // Kiểm tra người dùng
         const user = await User.findById(user_id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        const AllPost = await Post.find({
+        // Lấy tất cả bài viết công khai (chỉ lấy các trường cần thiết)
+        const allPosts = await Post.find({
             status: 'public',
-        }).select('_id title likes createdAt').lean();
+        }).select('_id title likes').lean();
 
-        // Get posts liked by the current user
+        // Lấy các bài viết mà người dùng đã thích
         const userLikedPosts = await Post.find({
             likes: user_id,
-        }).select('_id').lean();
+        }).select('_id title').lean();
 
-        // Find users who liked the same posts
-        const usersWhoLikedSamePostsSet = new Set();
+        const userLikedPostIds = userLikedPosts.map(post => post._id);
 
-        for (const post of userLikedPosts) {
-        const postDetails = await Post.findById(post._id).select('likes').lean();
-        postDetails.likes.forEach(like => {
-            const likeStr = like.toString();
-            if (likeStr !== user_id) {
-            usersWhoLikedSamePostsSet.add(likeStr);
-            }
-        });
-        }
+        // Kết hợp tiêu đề của các bài viết mà người dùng đã thích
+        const userLikedTitles = userLikedPosts.map(post => post.title).join(' ');
 
-        const usersWhoLikedSamePosts = Array.from(usersWhoLikedSamePostsSet);
+        // Lấy danh sách người dùng đã thích cùng bài viết
+        const usersWhoLikedSamePosts = await Post.aggregate([
+            { $match: { _id: { $in: userLikedPostIds } } },
+            { $unwind: '$likes' },
+            { $match: { 'likes': { $ne: user_id } } },
+            { $group: { _id: null, users: { $addToSet: '$likes' } } },
+            { $project: { _id: 0, users: 1 } }
+        ]);
 
+        const otherUserIds = usersWhoLikedSamePosts.length > 0 ? usersWhoLikedSamePosts[0].users : [];
+
+        // Lấy các bài viết mà những người dùng khác đã thích
+        const postsLikedByOtherUsers = await Post.find({
+            likes: { $in: otherUserIds }
+        }).select('_id likes').lean();
+
+        // Tạo dữ liệu cho Collaborative Filtering
         const userDataMap = new Map();
 
-        // Get posts liked by users who liked the same posts
-        for (const user of usersWhoLikedSamePosts) {
-            AllPost.forEach(post => {
-                if (post.likes.some(like => like.toString() === user)) {
-                    if (userDataMap.has(user)) {
-                        userDataMap.get(user).push(post._id);
-                    } else {
-                        userDataMap.set(user, [post._id]);
-                    }
-                }
-            });
+        for (const otherUserId of otherUserIds) {
+            const postsLikedByUser = postsLikedByOtherUsers
+                .filter(post => post.likes.includes(otherUserId))
+                .map(post => post._id.toString());
+            userDataMap.set(otherUserId.toString(), postsLikedByUser);
         }
 
         const CollaborativeFilteringData = Array.from(userDataMap.entries()).map(([user, posts]) => ({
-            user_id: user,
-            liked_posts: posts
+            user_id: user.toString(),
+            liked_posts: posts.map(postId => postId.toString())
+        }));        
+
+        // Chuẩn bị dữ liệu cho Content-Based Filtering
+        const ContentBasedFilteringData = allPosts.map(post => ({
+            post_id: post._id.toString(),
+            title: post.title
         }));
 
-        const ContentBasedFilteringData = AllPost.filter(post =>
-            post.likes.some(like => like.toString() === user_id)
-        );
+        // Gửi dữ liệu đến Python backend
+        const recommendationPostsId = await axios.post(`${process.env.PYTHON_BACKEND_URL}/api/recommendations`, {
+            user_id: user_id.toString(),
+            user_query: userLikedTitles,
+            CollaborativeFilteringData,
+            ContentBasedFilteringData,
+        });
+
+        // Lấy thông tin bài viết từ danh sách post_id nhận được
+        const recommendationPosts = await Post.find({
+            _id: { $in: recommendationPostsId.data.recommendationPostsId }
+        }).sort({ createdAt: -1 }).lean();
 
         res.status(200).json({
             message: "Recommendation posts fetched successfully",
-            metadata: {
-                CollaborativeFilteringData,
-                ContentBasedFilteringData,
-            },
+            metadata: recommendationPosts,
         });
     } catch (err) {
         next(err);
     }
-};  
-
+};
 
 // Like a post
 const likeOrUnlikePost = async (req, res, next) => {

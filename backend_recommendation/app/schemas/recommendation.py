@@ -1,6 +1,20 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+class CollaborativeFilteringDataItem(BaseModel):
+    user_id: str
+    liked_posts: List[str]
+
+class ContentBasedFilteringDataItem(BaseModel):
+    post_id: str
+    title: str
+
+class RecommendationRequest(BaseModel):
+    user_id: str
+    user_query: str
+    CollaborativeFilteringData: List[CollaborativeFilteringDataItem]
+    ContentBasedFilteringData: List[ContentBasedFilteringDataItem]
+
 class PostRecommendation(BaseModel):
     post_id: str  
     title: str  
@@ -14,9 +28,4 @@ class PostRecommendation(BaseModel):
         orm_mode = True  
 
 class RecommendationResponse(BaseModel):
-    user_id: str  
-    recommended_posts: List[PostRecommendation]  
-    recommendation_algorithm: str  
-
-    class Config:
-        orm_mode = True 
+    recommendationPostsId: List[str]
