@@ -43,10 +43,16 @@ const joinCall = async (req, res, next) => {
         const userId = req.userId;
         const {receiverId} = req.body;
 
-        const call = await Call.findOne({participants: {$all: [userId, receiverId]}});
+        const call = await Call.findOne({
+            sender_id: userId,
+            receiver_id: receiverId,
+        });
         if (!call) {
             // create new call
-            const newCall = new Call({participants: [userId, receiverId]});
+            const newCall = new Call({
+                sender_id: userId,
+                receiver_id: receiverId,
+            });
             await newCall.save();
             res.status(200).json({callId: newCall._id});
         } else {
