@@ -41,17 +41,19 @@ const getMessagesByUserIds = async (req, res) => {
 const joinCall = async (req, res, next) => {
     try {
         const userId = req.userId;
-        const {receiverId} = req.body;
+        const {receiverId, callType} = req.body;
 
         const call = await Call.findOne({
             sender_id: userId,
             receiver_id: receiverId,
+            type: callType
         });
         if (!call) {
             // create new call
             const newCall = new Call({
                 sender_id: userId,
                 receiver_id: receiverId,
+                type: callType
             });
             await newCall.save();
             res.status(200).json({callId: newCall._id});
