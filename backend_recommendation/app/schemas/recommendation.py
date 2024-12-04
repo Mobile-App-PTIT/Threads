@@ -25,7 +25,7 @@ class PostRecommendation(BaseModel):
     user_name: str  
 
     class Config:
-        orm_mode = True  
+         from_attributes = True 
 
 class RecommendationResponse(BaseModel):
     recommendationPostsId: List[str]
