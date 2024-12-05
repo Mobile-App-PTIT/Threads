@@ -231,6 +231,9 @@ const getRecommendationPosts = async (req, res, next) => {
 
         const recommendationPosts = await Post.find({
             _id: { $in: recommendationPostsId.data.recommendationPostsId }
+        }).populate({
+            path: 'user_id',
+            select: '-password -email' 
         }).sort({ createdAt: -1 }).lean();
 
         res.status(200).json({

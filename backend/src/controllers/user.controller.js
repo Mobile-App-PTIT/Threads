@@ -101,7 +101,7 @@ const getAllUserInfo = async (req, res, next) => {
 
 const deleteUser = async (req, res, next) => {
   try {
-    const user_id = req.user._id.toString();
+    const user_id = req.userId.toString();
     if (user_id !== req.params.user_id) {
       return res.status(403).json({
         message: 'You are not authorized to delete this user',
@@ -243,7 +243,7 @@ const getUserFollowing = async (req, res, next) => {
 
 const FollowOrUnfollowUser = async (req, res, next) => {
   try {
-    const user_id = req.user._id.toString();
+    const user_id = req.userId.toString();
     const { follower_id } = req.params;
 
     if (user_id === follower_id) {

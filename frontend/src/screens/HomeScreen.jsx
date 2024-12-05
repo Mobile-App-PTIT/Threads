@@ -48,12 +48,22 @@ const HomeScreen = props => {
     try {
       setIsLoading(true);
       const token = await AsyncStorage.getItem('token');
+      // Default posts
+
       const response = await axios.get(`${uri}/post`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
+      // Recommended posts
+
+      // const response = await axios.get(`${uri}/post/recommendation/user/${user._id}`, {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //     'Content-Type': 'application/json',
+      //   },
+      // });
       setPosts(response.data.metadata);
       setIsLoading(false);
     } catch (error) {
