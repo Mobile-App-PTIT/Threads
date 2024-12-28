@@ -5,6 +5,7 @@ const intialState = {
   loading: false,
   isLoading: false,
   user: {},
+  streamClient: null,
   users: [],
   token:"",
   error: null,
@@ -79,5 +80,8 @@ export const userReducer = createReducer(intialState, (builder) => {
   .addCase('clearError', (state) => {
     state.error = null;
     state.isAuthenticated = false;
+  })
+  .addCase('getStreamClient', (state, action) => {
+    state.streamClient = action.payload;
   })
 });

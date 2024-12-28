@@ -14,7 +14,7 @@ import UserReplied from '../components/UserReplied';
 import { SocketContext } from '../components/SocketContext';
 
 const ProfileScreen = ({ navigation, route }) => {
-  const { user } = useSelector(state => state.user);
+  const { user, streamClient } = useSelector(state => state.user);
   const [followers, setFollowers] = useState();
   const [userData, setUserData] = useState();
   const [sharedPosts, setSharedPosts] = useState([]);
@@ -119,6 +119,7 @@ const ProfileScreen = ({ navigation, route }) => {
   const logoutHandler = () => {
     socket.emit('cus-disconnect');
     socket.close;
+    streamClient.disconnectUser();
     logoutUser()(dispatch);
   };
 
